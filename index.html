@@ -9,63 +9,61 @@
         :root { --accent: #FF3B30; --bg: #000; }
         body { margin: 0; background: var(--bg); color: #fff; font-family: -apple-system, sans-serif; height: 100vh; overflow: hidden; display: flex; flex-direction: column; }
         
-        #header { padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; z-index: 100; background: linear-gradient(to bottom, rgba(0,0,0,0.8), transparent); position: absolute; top: 0; width: 100%; box-sizing: border-box; }
-        #nome-luogo-display { font-size: 18px; font-weight: 800; letter-spacing: -0.5px; text-transform: uppercase; }
-
-        #gallery-list { display: flex; overflow-x: auto; scroll-snap-type: x mandatory; height: 100vh; width: 100vw; scroll-behavior: smooth; -webkit-overflow-scrolling: touch; }
+        /* Feed Swipe */
+        #gallery-list { display: flex; overflow-x: auto; scroll-snap-type: x mandatory; height: 100vh; width: 100vw; scroll-behavior: smooth; }
         #gallery-list::-webkit-scrollbar { display: none; }
 
-        .trace-card { min-width: 100vw; height: 100vh; scroll-snap-align: start; position: relative; display: flex; align-items: center; justify-content: center; background: #000; }
+        .trace-card { min-width: 100vw; height: 100vh; scroll-snap-align: start; position: relative; overflow: hidden; background: #000; }
         .trace-img { width: 100%; height: 100%; object-fit: cover; }
 
-        .trace-overlay { position: absolute; bottom: 120px; left: 20px; right: 20px; background: linear-gradient(transparent, rgba(0,0,0,0.9)); padding: 20px; border-radius: 20px; }
-        .trace-user { font-weight: 800; font-size: 20px; margin-bottom: 5px; color: #fff; }
-        .trace-desc { font-size: 16px; color: rgba(255,255,255,0.9); margin-bottom: 10px; }
-        .trace-date { font-size: 10px; color: rgba(255,255,255,0.5); text-transform: uppercase; }
+        /* Overlay Info */
+        .trace-overlay { position: absolute; bottom: 120px; left: 20px; right: 20px; background: linear-gradient(transparent, rgba(0,0,0,0.9)); padding: 20px; border-radius: 20px; pointer-events: none; }
+        .trace-user { font-weight: 800; font-size: 18px; color: #fff; }
+        .trace-desc { font-size: 15px; color: rgba(255,255,255,0.8); margin: 5px 0; }
+        
+        /* Like Heart UI */
+        .like-container { position: absolute; right: 20px; bottom: 250px; display: flex; flex-direction: column; align-items: center; gap: 5px; z-index: 100; }
+        .like-btn { background: none; border: none; font-size: 35px; cursor: pointer; filter: drop-shadow(0 2px 10px rgba(0,0,0,0.5)); transition: 0.2s; }
+        .like-count { font-size: 14px; font-weight: bold; }
 
+        /* Animazione Cuore Centrale */
+        .big-heart { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0); font-size: 100px; color: #fff; opacity: 0; pointer-events: none; z-index: 1000; }
+        @keyframes heartPop { 0% { transform: translate(-50%, -50%) scale(0); opacity: 0; } 50% { transform: translate(-50%, -50%) scale(1.2); opacity: 1; } 100% { transform: translate(-50%, -50%) scale(1); opacity: 0; } }
+
+        /* Camera Modal */
         #camera-modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000; z-index: 3000; display: none; flex-direction: column; }
         #video { width: 100%; height: 100%; object-fit: cover; }
-        
         .camera-ui { position: absolute; bottom: 40px; width: 100%; display: flex; flex-direction: column; align-items: center; gap: 15px; }
         .input-box { width: 85%; background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.3); border-radius: 15px; padding: 12px; color: #fff; backdrop-filter: blur(10px); font-size: 16px; }
-
-        /* Pulsanti Fotocamera */
-        .controls-row { display: flex; align-items: center; gap: 30px; }
-        .flip-btn { background: rgba(255,255,255,0.2); border: none; color: #fff; width: 50px; height: 50px; border-radius: 50%; font-size: 20px; backdrop-filter: blur(10px); }
         .snap-btn { width: 70px; height: 70px; background: red; border-radius: 50%; border: 5px solid #fff; }
 
+        /* Bottom Nav */
         .tab-bar { position: fixed; bottom: 0; width: 100%; height: 80px; background: linear-gradient(transparent, rgba(0,0,0,0.9)); display: flex; justify-content: space-around; align-items: center; z-index: 2000; }
-        .main-btn { width: 60px; height: 60px; background: #fff; border-radius: 50%; color: #000; font-size: 30px; border: none; font-weight: bold; }
-        .close-btn { position: absolute; top: 20px; right: 20px; font-size: 35px; color: #fff; background: none; border: none; z-index: 4000; }
+        .main-btn { width: 60px; height: 60px; background: #fff; border-radius: 50%; font-size: 30px; border: none; font-weight: bold; }
     </style>
 </head>
 <body>
 
-    <div id="header">
-        <div id="nome-luogo-display">...</div>
-        <button onclick="shareLink()" style="background:none; border:none; color:#fff; font-size:22px;">✈️</button>
-    </div>
-
     <div id="gallery-list"></div>
 
     <div id="camera-modal">
-        <button class="close-btn" onclick="toggleCamera()">×</button>
+        <button onclick="toggleCamera()" style="position:absolute; top:20px; right:20px; font-size:35px; background:none; border:none; color:#fff; z-index:4000;">×</button>
         <video id="video" autoplay playsinline muted></video>
         <div class="camera-ui">
             <input type="text" id="input-nome" class="input-box" placeholder="Tuo nome...">
-            <input type="text" id="input-desc" class="input-box" placeholder="Racconta questo momento...">
-            
-            <div class="controls-row">
-                <button class="flip-btn" onclick="switchCamera()">🔄</button>
+            <input type="text" id="input-desc" class="input-box" placeholder="Descrizione...">
+            <div style="display:flex; align-items:center; gap:30px;">
+                <button onclick="switchCamera()" style="background:none; border:none; font-size:24px;">🔄</button>
                 <button onclick="capturePhoto()" class="snap-btn"></button>
-                <div style="width:50px"></div> </div>
+                <div style="width:24px"></div>
+            </div>
         </div>
     </div>
 
     <div class="tab-bar">
-        <button onclick="location.reload()" style="background:none; border:none; color:#fff; font-size:26px;">🏠</button>
+        <button onclick="location.reload()" style="background:none; border:none; font-size:26px;">🏠</button>
         <button class="main-btn" onclick="toggleCamera()">+</button>
-        <button onclick="shareLink()" style="background:none; border:none; color:#fff; font-size:26px;">🔗</button>
+        <button onclick="shareLink()" style="background:none; border:none; font-size:26px;">🔗</button>
     </div>
 
     <canvas id="canvas" style="display:none;"></canvas>
@@ -77,88 +75,84 @@
 
         const params = new URLSearchParams(window.location.search);
         const idTag = params.get('id') || 'generale';
-        document.getElementById('nome-luogo-display').innerText = idTag.toUpperCase();
-
         const video = document.getElementById('video');
+        let currentFacingMode = 'environment';
         let userCoords = null;
-        let currentFacingMode = 'environment'; // 'environment' = posteriore, 'user' = anteriore
 
         navigator.geolocation.watchPosition(p => userCoords = p.coords);
 
         async function startCamera() {
-            const stream = await navigator.mediaDevices.getUserMedia({ 
-                video: { facingMode: currentFacingMode } 
-            });
+            const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: currentFacingMode } });
             video.srcObject = stream;
         }
 
         function toggleCamera() {
             const modal = document.getElementById('camera-modal');
-            if(modal.style.display === 'flex') {
-                modal.style.display = 'none';
-                if(video.srcObject) video.srcObject.getTracks().forEach(t => t.stop());
-            } else {
-                modal.style.display = 'flex';
-                startCamera();
-            }
+            if(modal.style.display === 'flex') { modal.style.display = 'none'; video.srcObject.getTracks().forEach(t => t.stop()); }
+            else { modal.style.display = 'flex'; startCamera(); }
         }
 
-        function switchCamera() {
-            currentFacingMode = (currentFacingMode === 'environment') ? 'user' : 'environment';
-            startCamera();
-        }
+        function switchCamera() { currentFacingMode = (currentFacingMode === 'environment') ? 'user' : 'environment'; startCamera(); }
 
         async function loadFeed() {
             const { data, error } = await supabaseClient.from('spots').select('*').eq('id_tag', idTag).order('created_at', { ascending: false });
             if (!error) {
                 let html = '';
                 data.forEach(t => {
-                    const date = new Date(t.created_at).toLocaleDateString('it-IT', { day:'2-digit', month:'short' });
                     html += `
-                        <div class="trace-card">
+                        <div class="trace-card" ondblclick="addLike('${t.id}')">
                             <img src="${t.foto_url}" class="trace-img">
+                            <div id="heart-${t.id}" class="big-heart">❤️</div>
+                            <div class="like-container">
+                                <button class="like-btn" onclick="addLike('${t.id}')">❤️</button>
+                                <span class="like-count" id="count-${t.id}">${t.likes || 0}</span>
+                            </div>
                             <div class="trace-overlay">
                                 <div class="trace-user">@${t.nome_posto}</div>
                                 <div class="trace-desc">${t.descrizione || ''}</div>
-                                <div class="trace-date">${date} • ${idTag}</div>
                             </div>
                         </div>`;
                 });
-                document.getElementById('gallery-list').innerHTML = html || "<div class='trace-card'><p>Scatta la prima foto!</p></div>";
+                document.getElementById('gallery-list').innerHTML = html || "<div class='trace-card'><p>Nessuna foto.</p></div>";
             }
+        }
+
+        async function addLike(id) {
+            const countEl = document.getElementById('count-' + id);
+            const heartAnim = document.getElementById('heart-' + id);
+            
+            // Animazione
+            heartAnim.style.animation = 'heartPop 0.6s ease-out';
+            setTimeout(() => { heartAnim.style.animation = ''; }, 600);
+
+            let currentLikes = parseInt(countEl.innerText);
+            countEl.innerText = currentLikes + 1;
+
+            await supabaseClient.rpc('increment_likes', { row_id: id });
+            // Se l'RPC sopra non è configurato, usa questo (meno preciso ma più semplice):
+            // await supabaseClient.from('spots').update({ likes: currentLikes + 1 }).eq('id', id);
         }
 
         async function capturePhoto() {
-            if (!userCoords) return alert("Attendi segnale GPS...");
+            if (!userCoords) return alert("Attendi GPS...");
             const canvas = document.getElementById('canvas');
             canvas.width = video.videoWidth; canvas.height = video.videoHeight;
             const ctx = canvas.getContext('2d');
-            
-            // Se è la camera anteriore, specchiamo l'immagine per farla sembrare naturale
-            if(currentFacingMode === 'user') {
-                ctx.translate(canvas.width, 0);
-                ctx.scale(-1, 1);
-            }
+            if(currentFacingMode === 'user') { ctx.translate(canvas.width, 0); ctx.scale(-1, 1); }
             ctx.drawImage(video, 0, 0);
             
             const photoBase64 = canvas.toDataURL('image/jpeg', 0.5);
-            const nome = document.getElementById('input-nome').value || "Anonimo";
-            const desc = document.getElementById('input-desc').value || "";
-
-            const { error } = await supabaseClient.from('spots').insert([{
-                id_tag: idTag, nome_posto: nome, descrizione: desc, foto_url: photoBase64,
-                latitudine: userCoords.latitude, longitudine: userCoords.longitude
+            await supabaseClient.from('spots').insert([{
+                id_tag: idTag, nome_posto: document.getElementById('input-nome').value || "Anonimo",
+                descrizione: document.getElementById('input-desc').value || "", foto_url: photoBase64,
+                latitudine: userCoords.latitude, longitudine: userCoords.longitude, likes: 0
             }]);
-
-            if (!error) {
-                toggleCamera();
-                loadFeed();
-            }
+            toggleCamera();
+            loadFeed();
         }
 
         function shareLink() {
-            const text = `Guarda le tracce di ${idTag.toUpperCase()}! ${window.location.href}`;
-            window.open(`https://wa.me/?text=${encodeURIComponent(text)}`);
+            window.open(`https://wa.me/?text=${encodeURIComponent('Guarda le tracce qui: ' + window.location.href)}`);
         }
 
         loadFeed();
