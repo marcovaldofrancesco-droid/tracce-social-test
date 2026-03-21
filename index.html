@@ -3,67 +3,83 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>TRACCE</title>
+    <title>TRACCE EXPLORER</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        :root { --accent: #FF3B30; --bg: #000; }
-        body { margin: 0; background: var(--bg); color: #fff; font-family: -apple-system, sans-serif; height: 100vh; overflow: hidden; display: flex; flex-direction: column; }
+        :root { --accent: #007AFF; --bg: #000; --panel: #121212; }
+        body { margin: 0; background: var(--bg); color: #fff; font-family: -apple-system, sans-serif; height: 100vh; overflow: hidden; }
         
-        /* Feed Swipe */
-        #gallery-list { display: flex; overflow-x: auto; scroll-snap-type: x mandatory; height: 100vh; width: 100vw; scroll-behavior: smooth; }
-        #gallery-list::-webkit-scrollbar { display: none; }
+        /* Navigazione */
+        #main-container { height: 100vh; width: 100vw; display: flex; transition: transform 0.3s ease-out; }
+        .page { min-width: 100vw; height: 100vh; position: relative; overflow-y: auto; }
 
-        .trace-card { min-width: 100vw; height: 100vh; scroll-snap-align: start; position: relative; overflow: hidden; background: #000; }
+        /* Profilo & Badge */
+        .profile-header { padding: 40px 20px; background: linear-gradient(to bottom, #1a1a1a, #000); text-align: center; }
+        .avatar { width: 80px; height: 80px; background: var(--accent); border-radius: 50%; margin: 0 auto 15px; display: flex; align-items: center; justify-content: center; font-size: 30px; font-weight: bold; }
+        .stats-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; padding: 20px; }
+        .stat-card { background: var(--panel); padding: 15px; border-radius: 15px; text-align: center; border: 1px solid #222; }
+        .stat-card span { display: block; font-size: 20px; font-weight: bold; color: var(--accent); }
+
+        .badge-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; padding: 20px; }
+        .badge { display: flex; flex-direction: column; align-items: center; font-size: 10px; opacity: 0.3; filter: grayscale(1); transition: 0.3s; }
+        .badge.unlocked { opacity: 1; filter: grayscale(0); }
+        .badge-icon { width: 60px; height: 60px; background: #222; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 24px; margin-bottom: 5px; border: 2px solid transparent; }
+        .badge.unlocked .badge-icon { border-color: gold; background: #333; }
+
+        /* Feed Swipe (stile TikTok) */
+        #gallery-list { display: flex; overflow-x: auto; scroll-snap-type: x mandatory; height: 100vh; width: 100vw; }
+        .trace-card { min-width: 100vw; height: 100vh; scroll-snap-align: start; position: relative; }
         .trace-img { width: 100%; height: 100%; object-fit: cover; }
+        .trace-overlay { position: absolute; bottom: 120px; left: 20px; background: linear-gradient(transparent, rgba(0,0,0,0.8)); padding: 20px; width: 80%; }
 
-        /* Overlay Info */
-        .trace-overlay { position: absolute; bottom: 120px; left: 20px; right: 20px; background: linear-gradient(transparent, rgba(0,0,0,0.9)); padding: 20px; border-radius: 20px; pointer-events: none; }
-        .trace-user { font-weight: 800; font-size: 18px; color: #fff; }
-        .trace-desc { font-size: 15px; color: rgba(255,255,255,0.8); margin: 5px 0; }
+        /* UI */
+        .tab-bar { position: fixed; bottom: 0; width: 100%; height: 70px; background: rgba(0,0,0,0.8); backdrop-filter: blur(20px); border-top: 1px solid #222; display: flex; justify-content: space-around; align-items: center; z-index: 2000; }
+        .main-btn { width: 55px; height: 55px; background: #fff; border-radius: 50%; border: none; font-size: 24px; font-weight: bold; }
         
-        /* Like Heart UI */
-        .like-container { position: absolute; right: 20px; bottom: 250px; display: flex; flex-direction: column; align-items: center; gap: 5px; z-index: 100; }
-        .like-btn { background: none; border: none; font-size: 35px; cursor: pointer; filter: drop-shadow(0 2px 10px rgba(0,0,0,0.5)); transition: 0.2s; }
-        .like-count { font-size: 14px; font-weight: bold; }
-
-        /* Animazione Cuore Centrale */
-        .big-heart { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0); font-size: 100px; color: #fff; opacity: 0; pointer-events: none; z-index: 1000; }
-        @keyframes heartPop { 0% { transform: translate(-50%, -50%) scale(0); opacity: 0; } 50% { transform: translate(-50%, -50%) scale(1.2); opacity: 1; } 100% { transform: translate(-50%, -50%) scale(1); opacity: 0; } }
-
-        /* Camera Modal */
-        #camera-modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000; z-index: 3000; display: none; flex-direction: column; }
-        #video { width: 100%; height: 100%; object-fit: cover; }
-        .camera-ui { position: absolute; bottom: 40px; width: 100%; display: flex; flex-direction: column; align-items: center; gap: 15px; }
-        .input-box { width: 85%; background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.3); border-radius: 15px; padding: 12px; color: #fff; backdrop-filter: blur(10px); font-size: 16px; }
-        .snap-btn { width: 70px; height: 70px; background: red; border-radius: 50%; border: 5px solid #fff; }
-
-        /* Bottom Nav */
-        .tab-bar { position: fixed; bottom: 0; width: 100%; height: 80px; background: linear-gradient(transparent, rgba(0,0,0,0.9)); display: flex; justify-content: space-around; align-items: center; z-index: 2000; }
-        .main-btn { width: 60px; height: 60px; background: #fff; border-radius: 50%; font-size: 30px; border: none; font-weight: bold; }
+        #camera-modal { position: fixed; top:0; left:0; width:100%; height:100%; background:#000; z-index:3000; display:none; flex-direction:column; }
+        #video { width:100%; height:100%; object-fit:cover; }
+        .cam-ui { position:absolute; bottom:40px; width:100%; display:flex; flex-direction:column; align-items:center; gap:15px; }
+        input { width:80%; padding:12px; border-radius:12px; border:none; background:rgba(255,255,255,0.2); color:#fff; }
     </style>
 </head>
 <body>
 
-    <div id="gallery-list"></div>
+    <div id="main-container">
+        <div class="page" id="profile-page">
+            <div class="profile-header">
+                <div class="avatar" id="user-initial">?</div>
+                <h2 id="display-username">Esploratore Anonimo</h2>
+                <button onclick="setupProfile()" style="background:none; border:1px solid #444; color:#888; padding:5px 15px; border-radius:10px; font-size:12px;">Modifica Profilo</button>
+            </div>
+            
+            <div class="stats-row">
+                <div class="stat-card"><span id="count-spots">0</span>Tracce</div>
+                <div class="stat-card"><span id="count-badges">0</span>Luoghi</div>
+            </div>
+
+            <h3 style="padding-left:20px; margin-bottom:5px;">Luoghi Sbloccati</h3>
+            <div class="badge-grid" id="badge-list">
+                </div>
+        </div>
+
+        <div class="page" id="feed-page">
+            <div id="gallery-list"></div>
+        </div>
+    </div>
 
     <div id="camera-modal">
-        <button onclick="toggleCamera()" style="position:absolute; top:20px; right:20px; font-size:35px; background:none; border:none; color:#fff; z-index:4000;">×</button>
+        <button onclick="toggleCamera()" style="position:absolute; top:20px; right:20px; font-size:30px; color:#fff; background:none; border:none;">×</button>
         <video id="video" autoplay playsinline muted></video>
-        <div class="camera-ui">
-            <input type="text" id="input-nome" class="input-box" placeholder="Tuo nome...">
-            <input type="text" id="input-desc" class="input-box" placeholder="Descrizione...">
-            <div style="display:flex; align-items:center; gap:30px;">
-                <button onclick="switchCamera()" style="background:none; border:none; font-size:24px;">🔄</button>
-                <button onclick="capturePhoto()" class="snap-btn"></button>
-                <div style="width:24px"></div>
-            </div>
+        <div class="cam-ui">
+            <input type="text" id="input-desc" placeholder="Cosa succede qui?">
+            <button onclick="capturePhoto()" class="main-btn" style="background:red; color:#fff; border:4px solid #fff;">●</button>
         </div>
     </div>
 
     <div class="tab-bar">
-        <button onclick="location.reload()" style="background:none; border:none; font-size:26px;">🏠</button>
+        <button onclick="showPage(0)" id="btn-profile" style="background:none; border:none; font-size:24px; opacity:0.5;">👤</button>
         <button class="main-btn" onclick="toggleCamera()">+</button>
-        <button onclick="shareLink()" style="background:none; border:none; font-size:26px;">🔗</button>
+        <button onclick="showPage(1)" id="btn-feed" style="background:none; border:none; font-size:24px;">🏠</button>
     </div>
 
     <canvas id="canvas" style="display:none;"></canvas>
@@ -75,86 +91,100 @@
 
         const params = new URLSearchParams(window.location.search);
         const idTag = params.get('id') || 'generale';
-        const video = document.getElementById('video');
-        let currentFacingMode = 'environment';
-        let userCoords = null;
+        let userProfile = JSON.parse(localStorage.getItem('tracce_profile')) || { name: "Anonimo", unlocked: [] };
 
-        navigator.geolocation.watchPosition(p => userCoords = p.coords);
+        // Aggiorna interfaccia iniziale
+        document.getElementById('display-username').innerText = userProfile.name;
+        document.getElementById('user-initial').innerText = userProfile.name[0].toUpperCase();
 
-        async function startCamera() {
-            const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: currentFacingMode } });
-            video.srcObject = stream;
+        function showPage(index) {
+            document.getElementById('main-container').style.transform = `translateX(-${index * 100}vw)`;
+            document.getElementById('btn-profile').style.opacity = index === 0 ? "1" : "0.5";
+            document.getElementById('btn-feed').style.opacity = index === 1 ? "1" : "0.5";
         }
 
-        function toggleCamera() {
-            const modal = document.getElementById('camera-modal');
-            if(modal.style.display === 'flex') { modal.style.display = 'none'; video.srcObject.getTracks().forEach(t => t.stop()); }
-            else { modal.style.display = 'flex'; startCamera(); }
+        function setupProfile() {
+            const nuovoNome = prompt("Inserisci il tuo nome:");
+            if(nuovoNome) {
+                userProfile.name = nuovoNome;
+                localStorage.setItem('tracce_profile', JSON.stringify(userProfile));
+                location.reload();
+            }
         }
-
-        function switchCamera() { currentFacingMode = (currentFacingMode === 'environment') ? 'user' : 'environment'; startCamera(); }
 
         async function loadFeed() {
             const { data, error } = await supabaseClient.from('spots').select('*').eq('id_tag', idTag).order('created_at', { ascending: false });
             if (!error) {
                 let html = '';
                 data.forEach(t => {
-                    html += `
-                        <div class="trace-card" ondblclick="addLike('${t.id}')">
-                            <img src="${t.foto_url}" class="trace-img">
-                            <div id="heart-${t.id}" class="big-heart">❤️</div>
-                            <div class="like-container">
-                                <button class="like-btn" onclick="addLike('${t.id}')">❤️</button>
-                                <span class="like-count" id="count-${t.id}">${t.likes || 0}</span>
-                            </div>
-                            <div class="trace-overlay">
-                                <div class="trace-user">@${t.nome_posto}</div>
-                                <div class="trace-desc">${t.descrizione || ''}</div>
-                            </div>
-                        </div>`;
+                    html += `<div class="trace-card">
+                        <img src="${t.foto_url}" class="trace-img">
+                        <div class="trace-overlay">
+                            <div style="font-weight:bold; color:#007AFF;">@${t.nome_posto}</div>
+                            <div>${t.descrizione || ''}</div>
+                        </div>
+                    </div>`;
                 });
-                document.getElementById('gallery-list').innerHTML = html || "<div class='trace-card'><p>Nessuna foto.</p></div>";
+                document.getElementById('gallery-list').innerHTML = html || "<div class='trace-card'><p style='padding:50px;'>Nessuna traccia. Sii il primo!</p></div>";
+                updateStats(data);
             }
         }
 
-        async function addLike(id) {
-            const countEl = document.getElementById('count-' + id);
-            const heartAnim = document.getElementById('heart-' + id);
+        function updateStats(data) {
+            const userPhotos = data.filter(t => t.nome_posto === userProfile.name);
+            document.getElementById('count-spots').innerText = userPhotos.length;
             
-            // Animazione
-            heartAnim.style.animation = 'heartPop 0.6s ease-out';
-            setTimeout(() => { heartAnim.style.animation = ''; }, 600);
-
-            let currentLikes = parseInt(countEl.innerText);
-            countEl.innerText = currentLikes + 1;
-
-            await supabaseClient.rpc('increment_likes', { row_id: id });
-            // Se l'RPC sopra non è configurato, usa questo (meno preciso ma più semplice):
-            // await supabaseClient.from('spots').update({ likes: currentLikes + 1 }).eq('id', id);
+            // Logica Badge
+            const allPlaces = ["PARCO", "CENTRO", "STAZIONE", "SCUOLA", "BAR"]; // Esempi
+            let badgeHtml = '';
+            let unlockedCount = 0;
+            
+            allPlaces.forEach(p => {
+                const isUnlocked = userProfile.unlocked.includes(p) || idTag.toUpperCase() === p;
+                if(isUnlocked && !userProfile.unlocked.includes(p)) {
+                    userProfile.unlocked.push(p);
+                    localStorage.setItem('tracce_profile', JSON.stringify(userProfile));
+                }
+                if(isUnlocked) unlockedCount++;
+                badgeHtml += `<div class="badge ${isUnlocked ? 'unlocked' : ''}">
+                    <div class="badge-icon">${isUnlocked ? '📍' : '🔒'}</div>
+                    ${p}
+                </div>`;
+            });
+            document.getElementById('badge-list').innerHTML = badgeHtml;
+            document.getElementById('count-badges').innerText = unlockedCount;
         }
 
         async function capturePhoto() {
-            if (!userCoords) return alert("Attendi GPS...");
+            const video = document.getElementById('video');
             const canvas = document.getElementById('canvas');
             canvas.width = video.videoWidth; canvas.height = video.videoHeight;
-            const ctx = canvas.getContext('2d');
-            if(currentFacingMode === 'user') { ctx.translate(canvas.width, 0); ctx.scale(-1, 1); }
-            ctx.drawImage(video, 0, 0);
-            
-            const photoBase64 = canvas.toDataURL('image/jpeg', 0.5);
+            canvas.getContext('2d').drawImage(video, 0, 0);
+            const photo = canvas.toDataURL('image/jpeg', 0.5);
+
             await supabaseClient.from('spots').insert([{
-                id_tag: idTag, nome_posto: document.getElementById('input-nome').value || "Anonimo",
-                descrizione: document.getElementById('input-desc').value || "", foto_url: photoBase64,
-                latitudine: userCoords.latitude, longitudine: userCoords.longitude, likes: 0
+                id_tag: idTag,
+                nome_posto: userProfile.name,
+                descrizione: document.getElementById('input-desc').value,
+                foto_url: photo
             }]);
             toggleCamera();
             loadFeed();
         }
 
-        function shareLink() {
-            window.open(`https://wa.me/?text=${encodeURIComponent('Guarda le tracce qui: ' + window.location.href)}`);
+        function toggleCamera() {
+            const m = document.getElementById('camera-modal');
+            const v = document.getElementById('video');
+            if(m.style.display === 'flex') {
+                m.style.display = 'none';
+                v.srcObject.getTracks().forEach(t => t.stop());
+            } else {
+                m.style.display = 'flex';
+                navigator.mediaDevices.getUserMedia({video: {facingMode:'environment'}}).then(s => v.srcObject = s);
+            }
         }
 
+        showPage(1); // Parte dalla Home
         loadFeed();
     </script>
 </body>
