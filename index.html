@@ -3,151 +3,120 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>TRACCE | BeReal Style</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <title>TRACCE SOCIAL</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
     <style>
-        body { background-color: #000; color: #fff; font-family: 'Inter', sans-serif; -webkit-font-smoothing: antialiased; }
-        .bereal-border { border: 1.5px solid #222; }
-        .btn-primary { background-color: #fff; color: #000; font-weight: 900; border-radius: 14px; transition: all 0.1s; }
-        .btn-primary:active { transform: scale(0.96); opacity: 0.9; }
-        .status-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; margin-right: 6px; }
-        .dot-red { background-color: #ff3b30; box-shadow: 0 0 10px #ff3b30; }
-        .dot-green { background-color: #34c759; box-shadow: 0 0 10px #34c759; }
-        #exist-img { object-fit: cover; filter: brightness(0.8); }
+        body { margin: 0; background: #000; color: #fff; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; overflow: hidden; display: flex; flex-direction: column; height: 100vh; }
+        #camera-container { position: relative; flex-grow: 1; background: #111; display: flex; align-items: center; justify-content: center; overflow: hidden; }
+        video { width: 100%; height: 100%; object-fit: cover; }
+        #overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: flex; flex-direction: column; justify-content: space-between; padding: 20px; box-sizing: border-box; pointer-events: none; }
+        .status-bar { display: flex; justify-content: space-between; align-items: center; pointer-events: auto; }
+        #sync-status { font-size: 12px; letter-spacing: 2px; color: #ff3b30; text-transform: uppercase; font-weight: bold; }
+        #sync-status.online { color: #4cd964; }
+        .location-box { background: rgba(255,255,255,0.1); backdrop-filter: blur(10px); padding: 15px; border-radius: 12px; text-align: center; pointer-events: auto; }
+        #nome-posto { font-size: 24px; font-weight: 800; letter-spacing: -0.5px; text-transform: uppercase; color: #aaa; }
+        #nome-posto.active { color: #fff; }
+        .controls { padding: 30px; display: flex; flex-direction: column; align-items: center; gap: 20px; background: linear-gradient(to top, rgba(0,0,0,0.8), transparent); }
+        #input-nome { background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); border-radius: 8px; padding: 12px; color: #fff; width: 80%; text-align: center; font-size: 16px; outline: none; }
+        #btn-scatta { width: 80px; height: 80px; border-radius: 50%; border: 5px solid #fff; background: transparent; position: relative; cursor: pointer; transition: transform 0.1s; }
+        #btn-scatta:active { transform: scale(0.9); background: rgba(255,255,255,0.3); }
+        #btn-pos { background: #fff; color: #000; border: none; padding: 10px 20px; border-radius: 20px; font-weight: bold; font-size: 12px; cursor: pointer; }
     </style>
 </head>
-<body class="flex flex-col min-h-screen">
+<body>
 
-    <header class="p-6 flex justify-between items-center">
-        <h1 class="text-2xl font-black italic uppercase tracking-tighter">Tracce.</h1>
-        <div id="status-bar" class="text-[10px] font-bold text-zinc-500 flex items-center">
-            <span id="dot" class="status-dot dot-red"></span>
-            <span id="status-text">OFFLINE</span>
-        </div>
-    </header>
-
-    <main class="flex-grow px-4 flex flex-col items-center">
-        <div id="main-card" class="w-full aspect-[3/4] bereal-border rounded-[2.5rem] relative overflow-hidden bg-zinc-900 flex flex-col items-center justify-center p-8 text-center shadow-2xl">
-            
-            <div id="loader" class="text-zinc-500 font-bold animate-pulse text-xs uppercase tracking-widest">Sincronizzazione...</div>
-
-            <div id="new-ui" class="hidden space-y-4">
-                <p class="text-2xl font-black uppercase italic">Varco Vergine</p>
-                <p class="text-zinc-500 text-sm">Nessuna traccia qui.<br>Sblocca la posizione per lasciare il segno.</p>
+    <div id="camera-container">
+        <video id="video" autoplay playsinline></video>
+        <div id="overlay">
+            <div class="status-bar">
+                <div id="sync-status">Sincronizzazione...</div>
+                <button id="btn-pos" onclick="getLocation()">SBLOCCA POSIZIONE</button>
             </div>
-
-            <div id="exist-ui" class="hidden w-full h-full flex flex-col">
-                <div class="absolute top-8 left-8 z-20 text-left">
-                    <p id="exist-name" class="text-4xl font-black italic uppercase leading-none text-white drop-shadow-xl"></p>
-                    <p id="exist-date" class="text-[11px] font-bold text-zinc-300 mt-2 uppercase tracking-[0.2em] opacity-80"></p>
-                </div>
-                <img id="exist-img" class="absolute inset-0 w-full h-full z-10">
-            </div>
-
-            <div id="input-area" class="hidden w-full mt-6 z-20 px-4">
-                <input type="text" id="post-name" placeholder="Dai un nome a questo posto..." 
-                       class="w-full bg-transparent border-b-2 border-white/30 py-4 text-xl font-bold outline-none focus:border-white transition-colors placeholder:text-zinc-700 text-center">
+            <div class="location-box">
+                <div id="nome-posto">VARCO VERGINE</div>
             </div>
         </div>
-    </main>
+    </div>
 
-    <footer class="p-8">
-        <button id="main-btn" class="btn-primary w-full py-5 text-xs uppercase tracking-[0.2em] shadow-lg">
-            Sblocca Posizione
-        </button>
-        <p class="text-[9px] text-zinc-700 text-center mt-6 font-bold uppercase tracking-[0.3em]">SOCIAL NETWORK REALE • 2026</p>
-    </footer>
+    <div class="controls">
+        <input type="text" id="input-nome" placeholder="Chi sta lasciando la traccia?">
+        <button id="btn-scatta" onclick="capturePhoto()"></button>
+    </div>
 
-    <input type="file" id="camera" accept="image/*" capture="environment" class="hidden">
+    <canvas id="canvas" style="display:none;"></canvas>
 
     <script>
-        // CONFIGURAZIONE SUPABASE
-        const SB_URL = "https://gdsrmowtzcahbtagxoft.supabase.co";
-        const SB_KEY = "sb_publishable_aX0nphFahb6sPsBKYb4pRw_PMng7si5";
-        const supabase = window.supabase.createClient(SB_URL, SB_KEY);
+        // CONFIGURAZIONE SUPABASE (TUTTO AGGIORNATO!)
+        const SUPABASE_URL = 'https://gdsrmowtzcahbtagxoft.supabase.co';
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdkc3Jtb3d0emNhaGJ0YWd4b2Z0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM5MTgzNDEsImV4cCI6MjA4OTQ5NDM0MX0.Ep-DcUjW1FnZduH-QIWUxyI0juRSLJS_K2TDM56DkCk';
+        const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-        const urlParams = new URLSearchParams(window.location.search);
-        const tagID = urlParams.get('id') || 'home_default';
-        let userPos = null;
+        const video = document.getElementById('video');
+        const canvas = document.getElementById('canvas');
+        const syncStatus = document.getElementById('sync-status');
+        const nomePostoDiv = document.getElementById('nome-posto');
+        let userCoords = null;
 
-        const mainBtn = document.getElementById('main-btn');
+        // 1. Accendi Camera
+        navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' }, audio: false })
+            .then(stream => { video.srcObject = stream; })
+            .catch(err => alert("Errore camera: " + err));
 
-        // 1. CARICAMENTO DATI
-        async function init() {
-            const { data, error } = await supabase
-                .from('spots')
-                .select('*')
-                .eq('id_tag', tagID)
-                .single();
-
-            document.getElementById('loader').classList.add('hidden');
-
-            if (data) {
-                document.getElementById('exist-ui').classList.remove('hidden');
-                document.getElementById('exist-name').innerText = data.nome_posto;
-                document.getElementById('exist-img').src = data.foto_url;
-                document.getElementById('exist-date').innerText = new Date(data.creato_at).toLocaleString('it-IT', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' });
-                mainBtn.innerText = "SOVRASCRIVI TRACCIA";
+        // 2. Controllo Connessione Database
+        async function checkConnection() {
+            const { data, error } = await supabase.from('spots').select('id_tag').limit(1);
+            if (!error) {
+                syncStatus.innerText = "SISTEMA ONLINE";
+                syncStatus.classList.add('online');
             } else {
-                document.getElementById('new-ui').classList.remove('hidden');
+                syncStatus.innerText = "ERRORE CONNESSIONE";
+                console.error(error);
+            }
+        }
+        checkConnection();
+
+        // 3. Prendi Posizione
+        function getLocation() {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(position => {
+                    userCoords = position.coords;
+                    nomePostoDiv.innerText = "POSIZIONE AGGANCIATA";
+                    nomePostoDiv.classList.add('active');
+                    document.getElementById('btn-pos').style.display = 'none';
+                }, () => alert("Attiva il GPS del telefono!"));
             }
         }
 
-        // 2. GESTIONE GPS E FOTO
-        mainBtn.onclick = () => {
-            if (!userPos) {
-                mainBtn.innerText = "LOCALIZZAZIONE...";
-                navigator.geolocation.getCurrentPosition((pos) => {
-                    userPos = pos.coords;
-                    document.getElementById('dot').className = "status-dot dot-green";
-                    document.getElementById('status-text').innerText = "ONLINE";
-                    document.getElementById('status-text').classList.add('text-zinc-300');
-                    
-                    document.getElementById('new-ui').classList.add('hidden');
-                    document.getElementById('exist-ui').classList.add('hidden');
-                    document.getElementById('input-area').classList.remove('hidden');
-                    
-                    mainBtn.innerText = "SCATTA ORA";
-                    mainBtn.onclick = () => document.getElementById('camera').click();
-                }, (err) => {
-                    alert("Attiva il GPS per usare Tracce.");
-                    mainBtn.innerText = "SBLOCCA POSIZIONE";
-                });
+        // 4. Scatta e Invia al Database
+        async function capturePhoto() {
+            if (!userCoords) return alert("Prima sblocca la posizione!");
+            const nome = document.getElementById('input-nome').value || "Anonimo";
+            
+            // Effetto scatto
+            video.style.opacity = "0";
+            setTimeout(() => video.style.opacity = "1", 100);
+
+            const context = canvas.getContext('2d');
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            context.drawImage(video, 0, 0);
+            const photoData = canvas.toDataURL('image/jpeg', 0.7);
+
+            const { error } = await supabase.from('spots').insert([{
+                id_tag: new URLSearchParams(window.location.search).get('id') || 'test1',
+                nome_posto: nome,
+                foto_url: photoData,
+                latitudine: userCoords.latitude,
+                longitudine: userCoords.longitude
+            }]);
+
+            if (error) {
+                alert("Errore salvataggio: " + error.message);
+            } else {
+                alert("TRACCIA LASCIATA CON SUCCESSO! 🚀");
+                document.getElementById('input-nome').value = "";
             }
-        };
-
-        // 3. SALVATAGGIO SU SUPABASE
-        document.getElementById('camera').onchange = async (e) => {
-            const file = e.target.files[0];
-            if (!file) return;
-
-            mainBtn.innerText = "PUBBLICAZIONE...";
-            mainBtn.disabled = true;
-
-            const reader = new FileReader();
-            reader.readAsDataURL(file);
-            reader.onload = async () => {
-                const { error } = await supabase.from('spots').upsert({
-                    id_tag: tagID,
-                    nome_posto: document.getElementById('post-name').value || "Posto Ignoto",
-                    foto_url: reader.result,
-                    latitudine: userPos.latitude,
-                    longitudine: userPos.longitude
-                });
-
-                if (error) {
-                    alert("Errore salvataggio: " + error.message);
-                    mainBtn.disabled = false;
-                    mainBtn.innerText = "RIPROVA";
-                } else {
-                    location.reload();
-                }
-            };
-        };
-
-        init();
+        }
     </script>
 </body>
 </html>
