@@ -3,42 +3,57 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>TRACCE SOCIAL</title>
+    <title>TRACCE SOCIAL (Tutte le Foto)</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        body { margin: 0; background: #000; color: #fff; font-family: sans-serif; overflow: hidden; display: flex; flex-direction: column; height: 100vh; }
-        #camera-container { position: relative; flex-grow: 1; background: #111; display: flex; align-items: center; justify-content: center; overflow: hidden; }
+        body { margin: 0; background: #000; color: #fff; font-family: -apple-system, sans-serif; display: flex; flex-direction: column; min-height: 100vh; }
+        
+        /* Camera */
+        #camera-section { position: sticky; top: 0; z-index: 100; height: 45vh; background: #000; border-bottom: 2px solid #333; }
         video { width: 100%; height: 100%; object-fit: cover; }
-        #overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: flex; flex-direction: column; justify-content: space-between; padding: 20px; box-sizing: border-box; pointer-events: none; }
-        .status-bar { display: flex; justify-content: space-between; align-items: center; pointer-events: auto; }
-        #sync-status { font-size: 10px; letter-spacing: 2px; color: #ff3b30; font-weight: bold; }
+        #overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: flex; flex-direction: column; justify-content: space-between; padding: 15px; box-sizing: border-box; pointer-events: none; }
+        .status-bar { display: flex; justify-content: space-between; pointer-events: auto; }
+        #sync-status { font-size: 9px; letter-spacing: 1px; color: #ff3b30; font-weight: bold; }
         #sync-status.online { color: #4cd964; }
-        .location-box { background: rgba(255,255,255,0.1); backdrop-filter: blur(10px); padding: 15px; border-radius: 12px; text-align: center; pointer-events: auto; }
-        #nome-posto { font-size: 20px; font-weight: bold; color: #aaa; }
-        .controls { padding: 30px; display: flex; flex-direction: column; align-items: center; gap: 20px; background: #000; }
-        #input-nome { background: #222; border: 1px solid #444; border-radius: 8px; padding: 12px; color: #fff; width: 80%; text-align: center; }
-        #btn-scatta { width: 70px; height: 70px; border-radius: 50%; border: 5px solid #fff; background: transparent; }
-        #btn-pos { background: #fff; color: #000; border: none; padding: 8px 15px; border-radius: 20px; font-weight: bold; font-size: 11px; }
+        #btn-pos { background: #fff; color: #000; border: none; padding: 6px 12px; border-radius: 15px; font-size: 10px; font-weight: bold; }
+
+        /* Controlli scatto */
+        .controls { padding: 15px; background: #000; display: flex; flex-direction: column; align-items: center; gap: 10px; }
+        #input-nome { background: #1a1a1a; border: 1px solid #333; border-radius: 8px; padding: 10px; color: #fff; width: 80%; text-align: center; }
+        #btn-scatta { width: 60px; height: 60px; border-radius: 50%; border: 4px solid #fff; background: transparent; }
+
+        /* Galleria Infinita */
+        #gallery-section { padding: 15px; background: #000; }
+        #gallery-header { font-size: 11px; letter-spacing: 2px; color: #666; margin-bottom: 15px; text-transform: uppercase; }
+        #gallery-list { display: grid; grid-template-columns: 1fr; gap: 20px; }
+        
+        .trace-item { background: #111; border-radius: 15px; overflow: hidden; border: 1px solid #222; }
+        .trace-img { width: 100%; aspect-ratio: 4/3; object-fit: cover; display: block; }
+        .trace-info { padding: 12px; display: flex; justify-content: space-between; align-items: center; }
+        .trace-name { font-weight: bold; font-size: 15px; }
+        .trace-date { color: #666; font-size: 11px; }
     </style>
 </head>
 <body>
 
-    <div id="camera-container">
+    <div id="camera-section">
         <video id="video" autoplay playsinline></video>
         <div id="overlay">
             <div class="status-bar">
-                <div id="sync-status">DISCONNESSO</div>
-                <button id="btn-pos" onclick="getLocation()">SBLOCCA POSIZIONE</button>
-            </div>
-            <div class="location-box">
-                <div id="nome-posto">VARCO VERGINE</div>
+                <div id="sync-status">CONNETTENDO...</div>
+                <button id="btn-pos" onclick="getLocation()">SBLOCCA GPS</button>
             </div>
         </div>
     </div>
 
     <div class="controls">
-        <input type="text" id="input-nome" placeholder="Il tuo nome...">
+        <input type="text" id="input-nome" placeholder="Il tuo nome">
         <button id="btn-scatta" onclick="capturePhoto()"></button>
+    </div>
+
+    <div id="gallery-section">
+        <div id="gallery-header">Tutte le tracce lasciate</div>
+        <div id="gallery-list">Caricamento archivio...</div>
     </div>
 
     <canvas id="canvas" style="display:none;"></canvas>
@@ -46,59 +61,76 @@
     <script>
         const SUPABASE_URL = 'https://gdsrmowtzcahbtagxoft.supabase.co';
         const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdkc3Jtb3d0emNhaGJ0YWd4b2Z0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM5MTgzNDEsImV4cCI6MjA4OTQ5NDM0MX0.Ep-DcUjW1FnZduH-QIWUxyI0juRSLJS_K2TDM56DkCk';
-        
-        // CORREZIONE QUI:
         const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
         const video = document.getElementById('video');
-        const syncStatus = document.getElementById('sync-status');
         let userCoords = null;
 
         navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } })
-            .then(stream => { video.srcObject = stream; })
-            .catch(err => console.error(err));
+            .then(s => video.srcObject = s);
 
-        async function checkDb() {
-            const { data, error } = await supabaseClient.from('spots').select('count', { count: 'exact', head: true });
+        // FUNZIONE PER CARICARE TUTTE LE FOTO
+        async function loadAllPhotos() {
+            const { data, error } = await supabaseClient
+                .from('spots')
+                .select('*') // Prendi tutto!
+                .eq('id_tag', 'test1')
+                .order('created_at', { ascending: false });
+
             if (!error) {
-                syncStatus.innerText = "SISTEMA ONLINE";
-                syncStatus.classList.add('online');
-            } else {
-                syncStatus.innerText = "ERRORE DB: " + error.message;
+                document.getElementById('sync-status').innerText = "SISTEMA ONLINE";
+                document.getElementById('sync-status').classList.add('online');
+                
+                let html = '';
+                data.forEach(t => {
+                    const d = new Date(t.created_at);
+                    const dateStr = d.toLocaleDateString() + " " + d.getHours() + ":" + String(d.getMinutes()).padStart(2, '0');
+                    html += `
+                        <div class="trace-item">
+                            <img src="${t.foto_url}" class="trace-img">
+                            <div class="trace-info">
+                                <span class="trace-name">${t.nome_posto}</span>
+                                <span class="trace-date">${dateStr}</span>
+                            </div>
+                        </div>`;
+                });
+                document.getElementById('gallery-list').innerHTML = html || "Ancora nessuna foto.";
             }
         }
-        checkDb();
 
         function getLocation() {
             navigator.geolocation.getCurrentPosition(p => {
                 userCoords = p.coords;
-                document.getElementById('nome-posto').innerText = "POSIZIONE OK";
-                document.getElementById('btn-pos').style.backgroundColor = "#4cd964";
+                document.getElementById('btn-pos').innerText = "GPS OK";
+                document.getElementById('btn-pos').style.background = "#4cd964";
             });
         }
 
         async function capturePhoto() {
-            if (!userCoords) return alert("Clicca SBLOCCA POSIZIONE!");
+            if (!userCoords) return alert("Sblocca il GPS!");
             const nome = document.getElementById('input-nome').value || "Anonimo";
             
             const canvas = document.getElementById('canvas');
-            const context = canvas.getContext('2d');
-            canvas.width = video.videoWidth;
-            canvas.height = video.videoHeight;
-            context.drawImage(video, 0, 0);
-            const photoData = canvas.toDataURL('image/jpeg', 0.6);
+            const ctx = canvas.getContext('2d');
+            canvas.width = video.videoWidth; canvas.height = video.videoHeight;
+            ctx.drawImage(video, 0, 0);
+            const photo = canvas.toDataURL('image/jpeg', 0.5);
 
             const { error } = await supabaseClient.from('spots').insert([{
                 id_tag: 'test1',
                 nome_posto: nome,
-                foto_url: photoData,
+                foto_url: photo,
                 latitudine: userCoords.latitude,
                 longitudine: userCoords.longitude
             }]);
 
-            if (error) alert("Errore: " + error.message);
-            else alert("TRACCIA SALVATA!");
+            if (!error) {
+                alert("Foto inviata!");
+                loadAllPhotos();
+            }
         }
+
+        loadAllPhotos();
     </script>
 </body>
 </html>
