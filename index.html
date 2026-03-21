@@ -3,81 +3,69 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>TRACCE SOCIAL</title>
+    <title>TRACCE</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        :root { --accent: #007AFF; --bg: #050505; --card: #121212; --glass: rgba(255, 255, 255, 0.1); }
+        :root { --accent: #FF3B30; --bg: #000; }
+        body { margin: 0; background: var(--bg); color: #fff; font-family: -apple-system, sans-serif; height: 100vh; overflow: hidden; display: flex; flex-direction: column; }
         
-        body { margin: 0; background: var(--bg); color: #fff; font-family: -apple-system, BlinkMacSystemFont, sans-serif; padding-bottom: 80px; }
-        
-        /* Header elegante */
-        #header { padding: 20px; position: sticky; top: 0; background: rgba(0,0,0,0.8); backdrop-filter: blur(20px); z-index: 1000; border-bottom: 1px solid #222; display: flex; justify-content: space-between; align-items: center; }
-        .logo-box h1 { margin: 0; font-size: 18px; letter-spacing: -0.5px; }
-        .logo-box span { font-size: 10px; color: #888; text-transform: uppercase; letter-spacing: 1px; }
+        #header { padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; z-index: 100; background: linear-gradient(to bottom, rgba(0,0,0,0.8), transparent); position: absolute; top: 0; width: 100%; box-sizing: border-box; }
+        #nome-luogo-display { font-size: 18px; font-weight: 800; letter-spacing: -0.5px; text-transform: uppercase; }
 
-        /* Area Camera */
-        #camera-container { width: 100%; height: 60vh; position: relative; background: #000; overflow: hidden; }
+        #gallery-list { display: flex; overflow-x: auto; scroll-snap-type: x mandatory; height: 100vh; width: 100vw; scroll-behavior: smooth; -webkit-overflow-scrolling: touch; }
+        #gallery-list::-webkit-scrollbar { display: none; }
+
+        .trace-card { min-width: 100vw; height: 100vh; scroll-snap-align: start; position: relative; display: flex; align-items: center; justify-content: center; background: #000; }
+        .trace-img { width: 100%; height: 100%; object-fit: cover; }
+
+        .trace-overlay { position: absolute; bottom: 120px; left: 20px; right: 20px; background: linear-gradient(transparent, rgba(0,0,0,0.9)); padding: 20px; border-radius: 20px; }
+        .trace-user { font-weight: 800; font-size: 20px; margin-bottom: 5px; color: #fff; }
+        .trace-desc { font-size: 16px; color: rgba(255,255,255,0.9); margin-bottom: 10px; }
+        .trace-date { font-size: 10px; color: rgba(255,255,255,0.5); text-transform: uppercase; }
+
+        #camera-modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000; z-index: 3000; display: none; flex-direction: column; }
         #video { width: 100%; height: 100%; object-fit: cover; }
         
-        /* Overlay per Input */
-        .camera-ui { position: absolute; bottom: 0; width: 100%; padding: 20px; box-sizing: border-box; background: linear-gradient(transparent, rgba(0,0,0,0.9)); display: flex; flex-direction: column; gap: 10px; }
-        .input-group { display: flex; flex-direction: column; gap: 8px; }
-        input { background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.2); border-radius: 12px; padding: 12px; color: #fff; font-size: 15px; backdrop-filter: blur(10px); outline: none; }
-        input::placeholder { color: #aaa; }
+        .camera-ui { position: absolute; bottom: 40px; width: 100%; display: flex; flex-direction: column; align-items: center; gap: 15px; }
+        .input-box { width: 85%; background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.3); border-radius: 15px; padding: 12px; color: #fff; backdrop-filter: blur(10px); font-size: 16px; }
 
-        /* Galleria */
-        #gallery-section { padding: 15px; display: flex; flex-direction: column; gap: 20px; }
-        .trace-card { background: var(--card); border-radius: 24px; overflow: hidden; border: 1px solid #222; }
-        .trace-img { width: 100%; display: block; }
-        .trace-content { padding: 15px; }
-        .trace-user { font-weight: 700; font-size: 15px; color: var(--accent); }
-        .trace-desc { font-size: 14px; margin: 5px 0; color: #eee; line-height: 1.4; }
-        .trace-meta { font-size: 10px; color: #555; text-transform: uppercase; margin-top: 8px; }
+        /* Pulsanti Fotocamera */
+        .controls-row { display: flex; align-items: center; gap: 30px; }
+        .flip-btn { background: rgba(255,255,255,0.2); border: none; color: #fff; width: 50px; height: 50px; border-radius: 50%; font-size: 20px; backdrop-filter: blur(10px); }
+        .snap-btn { width: 70px; height: 70px; background: red; border-radius: 50%; border: 5px solid #fff; }
 
-        /* Barra di Navigazione Inferiore */
-        .tab-bar { position: fixed; bottom: 0; width: 100%; height: 70px; background: rgba(15,15,15,0.9); backdrop-filter: blur(20px); border-top: 1px solid #222; display: flex; justify-content: space-around; align-items: center; z-index: 2000; }
-        .tab-btn { background: none; border: none; color: #888; display: flex; flex-direction: column; align-items: center; font-size: 10px; gap: 4px; cursor: pointer; }
-        .tab-btn.active { color: #fff; }
-        .main-btn { width: 55px; height: 55px; background: #fff; border-radius: 50%; display: flex; align-items: center; justify-content: center; transform: translateY(-15px); border: 5px solid var(--bg); color: #000; font-weight: bold; font-size: 24px; transition: 0.2s; }
-        .main-btn:active { transform: translateY(-15px) scale(0.9); }
-
-        .flash { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #fff; opacity: 0; pointer-events: none; z-index: 3000; transition: 0.2s; }
+        .tab-bar { position: fixed; bottom: 0; width: 100%; height: 80px; background: linear-gradient(transparent, rgba(0,0,0,0.9)); display: flex; justify-content: space-around; align-items: center; z-index: 2000; }
+        .main-btn { width: 60px; height: 60px; background: #fff; border-radius: 50%; color: #000; font-size: 30px; border: none; font-weight: bold; }
+        .close-btn { position: absolute; top: 20px; right: 20px; font-size: 35px; color: #fff; background: none; border: none; z-index: 4000; }
     </style>
 </head>
 <body>
 
-    <div id="flash-effect" class="flash"></div>
-
     <div id="header">
-        <div class="logo-box">
-            <span id="label-tag">Tag Position</span>
-            <h1 id="nome-luogo-display">...</h1>
-        </div>
-        <button onclick="shareLink()" style="background:none; border:none; color:var(--accent); font-weight:bold; font-size:14px;">INVITA</button>
+        <div id="nome-luogo-display">...</div>
+        <button onclick="shareLink()" style="background:none; border:none; color:#fff; font-size:22px;">✈️</button>
     </div>
 
-    <div id="camera-container">
+    <div id="gallery-list"></div>
+
+    <div id="camera-modal">
+        <button class="close-btn" onclick="toggleCamera()">×</button>
         <video id="video" autoplay playsinline muted></video>
         <div class="camera-ui">
-            <div class="input-group">
-                <input type="text" id="input-nome" placeholder="Tuo nome...">
-                <input type="text" id="input-desc" placeholder="Aggiungi una descrizione...">
-            </div>
+            <input type="text" id="input-nome" class="input-box" placeholder="Tuo nome...">
+            <input type="text" id="input-desc" class="input-box" placeholder="Racconta questo momento...">
+            
+            <div class="controls-row">
+                <button class="flip-btn" onclick="switchCamera()">🔄</button>
+                <button onclick="capturePhoto()" class="snap-btn"></button>
+                <div style="width:50px"></div> </div>
         </div>
-    </div>
-
-    <div id="gallery-section">
-        <div id="gallery-list">Caricamento tracce...</div>
     </div>
 
     <div class="tab-bar">
-        <button class="tab-btn active" onclick="window.scrollTo({top:0, behavior:'smooth'})">
-            <span>🏠</span> Home
-        </button>
-        <button class="main-btn" onclick="capturePhoto()">+</button>
-        <button class="tab-btn" onclick="shareLink()">
-            <span>🔗</span> Invita
-        </button>
+        <button onclick="location.reload()" style="background:none; border:none; color:#fff; font-size:26px;">🏠</button>
+        <button class="main-btn" onclick="toggleCamera()">+</button>
+        <button onclick="shareLink()" style="background:none; border:none; color:#fff; font-size:26px;">🔗</button>
     </div>
 
     <canvas id="canvas" style="display:none;"></canvas>
@@ -89,45 +77,68 @@
 
         const params = new URLSearchParams(window.location.search);
         const idTag = params.get('id') || 'generale';
-        document.getElementById('nome-luogo-display').innerText = idTag.replace(/-/g, ' ').toUpperCase();
+        document.getElementById('nome-luogo-display').innerText = idTag.toUpperCase();
 
         const video = document.getElementById('video');
         let userCoords = null;
+        let currentFacingMode = 'environment'; // 'environment' = posteriore, 'user' = anteriore
 
-        navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } }).then(s => video.srcObject = s);
-        navigator.geolocation.watchPosition(p => userCoords = p.coords, null, { enableHighAccuracy: true });
+        navigator.geolocation.watchPosition(p => userCoords = p.coords);
+
+        async function startCamera() {
+            const stream = await navigator.mediaDevices.getUserMedia({ 
+                video: { facingMode: currentFacingMode } 
+            });
+            video.srcObject = stream;
+        }
+
+        function toggleCamera() {
+            const modal = document.getElementById('camera-modal');
+            if(modal.style.display === 'flex') {
+                modal.style.display = 'none';
+                if(video.srcObject) video.srcObject.getTracks().forEach(t => t.stop());
+            } else {
+                modal.style.display = 'flex';
+                startCamera();
+            }
+        }
+
+        function switchCamera() {
+            currentFacingMode = (currentFacingMode === 'environment') ? 'user' : 'environment';
+            startCamera();
+        }
 
         async function loadFeed() {
             const { data, error } = await supabaseClient.from('spots').select('*').eq('id_tag', idTag).order('created_at', { ascending: false });
             if (!error) {
                 let html = '';
                 data.forEach(t => {
-                    const d = new Date(t.created_at).toLocaleDateString('it-IT', { day:'numeric', month:'short', hour:'2-digit', minute:'2-digit' });
-                    // Usiamo "id_tag" per la descrizione se vuoi o aggiungi una colonna "descrizione" su Supabase.
-                    // Per ora usiamo un trucco: salviamo nome e descrizione separati.
+                    const date = new Date(t.created_at).toLocaleDateString('it-IT', { day:'2-digit', month:'short' });
                     html += `
                         <div class="trace-card">
                             <img src="${t.foto_url}" class="trace-img">
-                            <div class="trace-content">
-                                <div class="trace-user">${t.nome_posto}</div>
+                            <div class="trace-overlay">
+                                <div class="trace-user">@${t.nome_posto}</div>
                                 <div class="trace-desc">${t.descrizione || ''}</div>
-                                <div class="trace-meta">${d} • ${idTag}</div>
+                                <div class="trace-date">${date} • ${idTag}</div>
                             </div>
                         </div>`;
                 });
-                document.getElementById('gallery-list').innerHTML = html || "Ancora nessuna traccia.";
+                document.getElementById('gallery-list').innerHTML = html || "<div class='trace-card'><p>Scatta la prima foto!</p></div>";
             }
         }
 
         async function capturePhoto() {
-            if (!userCoords) return alert("Attendi il GPS...");
-            
-            const flash = document.getElementById('flash-effect');
-            flash.style.opacity = "1"; setTimeout(() => flash.style.opacity = "0", 200);
-
+            if (!userCoords) return alert("Attendi segnale GPS...");
             const canvas = document.getElementById('canvas');
-            const ctx = canvas.getContext('2d');
             canvas.width = video.videoWidth; canvas.height = video.videoHeight;
+            const ctx = canvas.getContext('2d');
+            
+            // Se è la camera anteriore, specchiamo l'immagine per farla sembrare naturale
+            if(currentFacingMode === 'user') {
+                ctx.translate(canvas.width, 0);
+                ctx.scale(-1, 1);
+            }
             ctx.drawImage(video, 0, 0);
             
             const photoBase64 = canvas.toDataURL('image/jpeg', 0.5);
@@ -135,24 +146,19 @@
             const desc = document.getElementById('input-desc').value || "";
 
             const { error } = await supabaseClient.from('spots').insert([{
-                id_tag: idTag,
-                nome_posto: nome,
-                descrizione: desc, // Assicurati di aver aggiunto la colonna "descrizione" su Supabase!
-                foto_url: photoBase64,
-                latitudine: userCoords.latitude,
-                longitudine: userCoords.longitude
+                id_tag: idTag, nome_posto: nome, descrizione: desc, foto_url: photoBase64,
+                latitudine: userCoords.latitude, longitudine: userCoords.longitude
             }]);
 
             if (!error) {
-                document.getElementById('input-desc').value = "";
+                toggleCamera();
                 loadFeed();
-                window.scrollTo({top: document.body.scrollHeight, behavior: 'smooth'});
             }
         }
 
         function shareLink() {
-            const text = `Vieni a lasciare una traccia al ${idTag.toUpperCase()}! Guarda le mie foto qui: ${window.location.href}`;
-            window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
+            const text = `Guarda le tracce di ${idTag.toUpperCase()}! ${window.location.href}`;
+            window.open(`https://wa.me/?text=${encodeURIComponent(text)}`);
         }
 
         loadFeed();
