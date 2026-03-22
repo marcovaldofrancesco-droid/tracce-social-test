@@ -2,70 +2,77 @@
 <html lang="it">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>TRACCE</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>TRACCE PRO</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        :root { --accent: #007AFF; --bg: #000; --card: #151515; }
-        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        :root { --accent: #ff3b30; --bg: #000; --glass: rgba(255, 255, 255, 0.12); --glass-heavy: rgba(0, 0, 0, 0.7); }
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; outline: none; }
         
-        body { margin: 0; background: var(--bg); color: #fff; font-family: -apple-system, system-ui, sans-serif; height: 100dvh; overflow: hidden; }
+        body { margin: 0; background: var(--bg); color: #fff; font-family: 'SF Pro Display', -apple-system, BlinkMacSystemFont, sans-serif; height: 100dvh; overflow: hidden; }
 
-        /* Contenitore Pagine con Swipe */
-        #main-slider { display: flex; width: 200vw; height: 100dvh; transition: transform 0.4s cubic-bezier(0.25, 1, 0.5, 1); }
+        /* Contenitore Slider Orizzontale (Profilo <-> Feed) */
+        #main-slider { display: flex; width: 200vw; height: 100dvh; transition: transform 0.5s cubic-bezier(0.19, 1, 0.22, 1); }
         .page { width: 100vw; height: 100dvh; position: relative; overflow: hidden; }
 
-        /* --- STILE PROFILO --- */
-        #profile-page { background: linear-gradient(180deg, #111 0%, #000 100%); overflow-y: auto; padding-bottom: 100px; }
-        .profile-card { padding: 40px 20px; text-align: center; }
-        .avatar { width: 90px; height: 90px; background: linear-gradient(45deg, var(--accent), #5856D6); border-radius: 30px; margin: 0 auto 15px; display: flex; align-items: center; justify-content: center; font-size: 32px; box-shadow: 0 10px 20px rgba(0,122,255,0.3); }
-        .stats { display: flex; justify-content: center; gap: 20px; margin-top: 20px; }
-        .stat-item { background: rgba(255,255,255,0.05); padding: 15px 25px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.1); }
-        .stat-item b { display: block; font-size: 22px; color: var(--accent); }
-
-        /* --- GALLERIA TIKTOK STYLE --- */
+        /* --- PROFILO: LOOK MINIMAL --- */
+        #profile-page { background: radial-gradient(circle at top right, #1a1a1a, #000); display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px; }
+        .avatar-glow { width: 120px; height: 120px; background: linear-gradient(45deg, #ff3b30, #ff9500); border-radius: 40px; display: flex; align-items: center; justify-content: center; font-size: 45px; font-weight: 800; box-shadow: 0 20px 40px rgba(255, 59, 48, 0.3); margin-bottom: 20px; transform: rotate(-5deg); }
+        .user-badge { background: var(--glass); padding: 6px 15px; border-radius: 20px; font-size: 12px; text-transform: uppercase; letter-spacing: 1px; color: #ff3b30; margin-bottom: 10px; border: 1px solid rgba(255, 59, 48, 0.3); }
+        
+        /* --- FEED: TIKTOK EXPERIENCE --- */
         #gallery-feed { height: 100%; width: 100%; overflow-y: scroll; scroll-snap-type: y mandatory; scroll-behavior: smooth; }
         #gallery-feed::-webkit-scrollbar { display: none; }
 
-        .spot-card { height: 100dvh; width: 100vw; scroll-snap-align: start; position: relative; background: #000; display: flex; align-items: center; justify-content: center; }
+        .spot-card { height: 100dvh; width: 100vw; scroll-snap-align: start; position: relative; background: #111; }
         .spot-img { width: 100%; height: 100%; object-fit: cover; }
         
-        /* Overlay Sfumato */
-        .spot-overlay { position: absolute; bottom: 0; left: 0; right: 0; height: 40%; background: linear-gradient(to top, rgba(0,0,0,0.9) 0%, transparent 100%); padding: 30px 20px; display: flex; flex-direction: column; justify-content: flex-end; pointer-events: none; }
-        .spot-info h3 { margin: 0; font-size: 20px; font-weight: 700; color: #fff; }
-        .spot-info p { margin: 5px 0 0; font-size: 15px; color: rgba(255,255,255,0.7); line-height: 1.4; }
+        /* Gradienti di profondità */
+        .vignette-top { position: absolute; top: 0; width: 100%; height: 150px; background: linear-gradient(to bottom, rgba(0,0,0,0.8), transparent); pointer-events: none; }
+        .vignette-bottom { position: absolute; bottom: 0; width: 100%; height: 400px; background: linear-gradient(to top, rgba(0,0,0,0.9) 10%, transparent); pointer-events: none; }
 
-        /* Pulsanti Like */
-        .side-actions { position: absolute; right: 15px; bottom: 120px; display: flex; flex-direction: column; gap: 20px; align-items: center; z-index: 10; }
-        .action-btn { background: rgba(255,255,255,0.1); backdrop-filter: blur(10px); border: none; width: 50px; height: 50px; border-radius: 50%; color: #fff; font-size: 22px; display: flex; align-items: center; justify-content: center; }
-        .action-btn span { font-size: 12px; margin-top: 4px; font-weight: bold; }
+        /* Info Overlay */
+        .spot-details { position: absolute; bottom: 100px; left: 20px; right: 80px; z-index: 5; }
+        .spot-details h3 { margin: 0; font-size: 22px; font-weight: 800; text-shadow: 0 2px 10px rgba(0,0,0,0.5); }
+        .spot-details p { margin: 8px 0 0; font-size: 16px; color: rgba(255,255,255,0.8); line-height: 1.4; }
 
-        /* --- CAMERA MODAL --- */
+        /* Sidebar Action Menu */
+        .actions-sidebar { position: absolute; right: 15px; bottom: 110px; display: flex; flex-direction: column; gap: 20px; align-items: center; z-index: 10; }
+        .btn-circle { width: 52px; height: 52px; border-radius: 50%; background: rgba(255,255,255,0.1); backdrop-filter: blur(15px); border: 1px solid rgba(255,255,255,0.2); display: flex; flex-direction: column; align-items: center; justify-content: center; color: #fff; font-size: 22px; transition: 0.2s; }
+        .btn-circle:active { transform: scale(0.85); background: rgba(255,255,255,0.2); }
+        .btn-circle span { font-size: 11px; font-weight: bold; margin-top: 2px; }
+
+        /* --- FOTOCAMERA FULLSCREEN --- */
         #camera-modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000; z-index: 5000; display: none; }
         #video { width: 100%; height: 100%; object-fit: cover; }
-        .cam-overlay { position: absolute; bottom: 40px; width: 100%; padding: 0 30px; display: flex; flex-direction: column; gap: 15px; align-items: center; }
-        .cam-input { width: 100%; background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.2); border-radius: 20px; padding: 15px; color: #fff; backdrop-filter: blur(20px); font-size: 16px; outline: none; }
-        .snap-btn { width: 80px; height: 80px; border-radius: 50%; background: #fff; border: 6px solid rgba(255,255,255,0.3); position: relative; }
-        .snap-btn:active { transform: scale(0.9); }
+        .cam-controls { position: absolute; bottom: 50px; width: 100%; display: flex; flex-direction: column; align-items: center; gap: 20px; padding: 0 30px; }
+        .shutter-btn { width: 85px; height: 85px; border-radius: 50%; border: 4px solid #fff; background: transparent; display: flex; align-items: center; justify-content: center; }
+        .shutter-inner { width: 65px; height: 65px; border-radius: 50%; background: #fff; }
 
-        /* --- NAV BAR --- */
-        .nav-bar { position: fixed; bottom: 25px; left: 50%; transform: translateX(-50%); width: 90%; max-width: 400px; height: 65px; background: rgba(25,25,25,0.8); backdrop-filter: blur(20px); border-radius: 30px; border: 1px solid rgba(255,255,255,0.1); display: flex; justify-content: space-around; align-items: center; z-index: 4000; }
-        .nav-btn { background: none; border: none; font-size: 24px; opacity: 0.4; transition: 0.3s; padding: 10px; }
-        .nav-btn.active { opacity: 1; transform: scale(1.1); }
-        .add-btn { width: 50px; height: 50px; background: #fff; border-radius: 20px; color: #000; font-size: 28px; display: flex; align-items: center; justify-content: center; font-weight: bold; box-shadow: 0 5px 15px rgba(255,255,255,0.2); }
+        /* --- NAVIGAZIONE FLOATING --- */
+        .nav-dock { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); width: 280px; height: 68px; background: var(--glass-heavy); backdrop-filter: blur(25px); border-radius: 35px; border: 1px solid rgba(255,255,255,0.1); display: flex; justify-content: space-around; align-items: center; z-index: 4000; box-shadow: 0 20px 40px rgba(0,0,0,0.4); }
+        .nav-item { background: none; border: none; font-size: 26px; opacity: 0.4; transition: 0.3s; padding: 10px; }
+        .nav-item.active { opacity: 1; transform: translateY(-5px); }
+        .center-add { width: 54px; height: 54px; background: #ff3b30; border-radius: 20px; display: flex; align-items: center; justify-content: center; font-size: 30px; font-weight: bold; box-shadow: 0 8px 20px rgba(255,59,48,0.4); }
 
+        /* Animazione Like */
+        .heart-pop { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 120px; color: #ff3b30; opacity: 0; pointer-events: none; z-index: 1000; }
+        @keyframes pop { 0% { transform: translate(-50%, -50%) scale(0); opacity: 0; } 50% { transform: translate(-50%, -50%) scale(1.3); opacity: 1; } 100% { transform: translate(-50%, -50%) scale(1); opacity: 0; } }
     </style>
 </head>
 <body>
 
     <div id="main-slider">
         <div class="page" id="profile-page">
-            <div class="profile-card">
-                <div class="avatar" id="u-initial">A</div>
-                <h2 id="u-name" onclick="editName()">Esploratore Anonimo</h2>
-                <div class="stats">
-                    <div class="stat-item"><b id="stat-photos">0</b>Tracce</div>
-                    <div class="stat-item"><b id="stat-places">1</b>Luoghi</div>
+            <div class="user-badge" id="u-tag">Esploratore</div>
+            <div class="avatar-glow" id="u-initial">?</div>
+            <h1 id="u-name" onclick="editName()" style="margin:0; letter-spacing:-1px;">Anonimo</h1>
+            <p style="color:#666; font-size:14px; margin-top:5px;">Tocca il nome per modificarlo</p>
+            
+            <div style="display:flex; gap:15px; margin-top:30px;">
+                <div style="text-align:center; background:var(--glass); padding:20px; border-radius:25px; min-width:100px;">
+                    <span id="stat-count" style="display:block; font-size:24px; font-weight:800; color:#ff3b30;">0</span>
+                    <span style="font-size:11px; text-transform:uppercase; opacity:0.5;">Tracce</span>
                 </div>
             </div>
         </div>
@@ -78,20 +85,20 @@
 
     <div id="camera-modal">
         <video id="video" autoplay playsinline muted></video>
-        <div class="cam-overlay">
-            <input type="text" id="desc-input" class="cam-input" placeholder="Cosa succede di bello?">
+        <div class="cam-controls">
+            <input type="text" id="desc-input" placeholder="Aggiungi un pensiero..." class="nav-dock" style="position:static; width:100%; background:var(--glass-heavy); transform:none; border:1px solid rgba(255,255,255,0.2); padding:0 20px; font-size:16px; color:#fff;">
             <div style="display:flex; align-items:center; gap:40px;">
-                <button onclick="switchCamera()" class="action-btn">🔄</button>
-                <button onclick="capture()" class="snap-btn"></button>
-                <button onclick="closeCam()" class="action-btn">✕</button>
+                <button onclick="switchCamera()" class="btn-circle">🔄</button>
+                <div class="shutter-btn" onclick="capture()"><div class="shutter-inner"></div></div>
+                <button onclick="closeCam()" class="btn-circle">✕</button>
             </div>
         </div>
     </div>
 
-    <div class="nav-bar">
-        <button class="nav-btn" onclick="goTo(0)" id="n-0">👤</button>
-        <button class="add-btn" onclick="openCam()">+</button>
-        <button class="nav-btn active" onclick="goTo(1)" id="n-1">🏠</button>
+    <div class="nav-dock">
+        <button class="nav-item" onclick="goTo(0)" id="n-0">👤</button>
+        <button class="center-add" onclick="openCam()">+</button>
+        <button class="nav-item active" onclick="goTo(1)" id="n-1">🏠</button>
     </div>
 
     <canvas id="canvas" style="display:none;"></canvas>
@@ -102,48 +109,58 @@
         const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
         const idTag = new URLSearchParams(window.location.search).get('id') || 'Varco';
-        let profile = JSON.parse(localStorage.getItem('tracce_v2')) || { name: "Anonimo" };
+        let profile = JSON.parse(localStorage.getItem('tracce_v3')) || { name: "Esploratore" };
         let currentFacing = 'environment';
 
-        // Inizializza Profilo
         document.getElementById('u-name').innerText = profile.name;
         document.getElementById('u-initial').innerText = profile.name[0].toUpperCase();
 
         function goTo(p) {
             document.getElementById('main-slider').style.transform = `translateX(-${p * 100}vw)`;
-            document.querySelectorAll('.nav-btn').forEach((b, i) => b.classList.toggle('active', i === p));
+            document.querySelectorAll('.nav-item').forEach((b, i) => b.classList.toggle('active', i === p));
         }
 
         function editName() {
-            const n = prompt("Il tuo nome:");
-            if(n) { profile.name = n; localStorage.setItem('tracce_v2', JSON.stringify(profile)); location.reload(); }
+            const n = prompt("Come vuoi chiamarti?");
+            if(n) { profile.name = n; localStorage.setItem('tracce_v3', JSON.stringify(profile)); location.reload(); }
         }
 
         async function load() {
-            const { data, error } = await supabaseClient.from('spots').select('*').eq('id_tag', idTag).order('created_at', { ascending: false });
+            const { data } = await supabaseClient.from('spots').select('*').eq('id_tag', idTag).order('created_at', { ascending: false });
             if (data) {
                 document.getElementById('gallery-feed').innerHTML = data.map(t => `
-                    <div class="spot-card">
+                    <div class="spot-card" ondblclick="like('${t.id}')">
                         <img src="${t.foto_url}" class="spot-img">
-                        <div class="side-actions">
-                            <button class="action-btn" onclick="like('${t.id}')">❤️<br><span>${t.likes || 0}</span></button>
-                            <button class="action-btn" onclick="share()">✈️</button>
+                        <div class="vignette-top"></div>
+                        <div class="vignette-bottom"></div>
+                        <div id="heart-${t.id}" class="heart-pop">❤️</div>
+                        <div class="actions-sidebar">
+                            <button class="btn-circle" onclick="like('${t.id}')">❤️<br><span id="l-${t.id}">${t.likes || 0}</span></button>
+                            <button class="btn-circle" onclick="share()">✈️</button>
                         </div>
-                        <div class="spot-overlay">
-                            <div class="spot-info">
-                                <h3>@${t.nome_posto}</h3>
-                                <p>${t.descrizione || ''}</p>
-                            </div>
+                        <div class="spot-details">
+                            <h3>@${t.nome_posto}</h3>
+                            <p>${t.descrizione || ''}</p>
                         </div>
                     </div>
                 `).join('');
-                document.getElementById('stat-photos').innerText = data.filter(x => x.nome_posto === profile.name).length;
+                document.getElementById('stat-count').innerText = data.filter(x => x.nome_posto === profile.name).length;
             }
+        }
+
+        async function like(id) {
+            const h = document.getElementById('heart-'+id);
+            h.style.animation = 'pop 0.6s ease-out';
+            setTimeout(() => h.style.animation = '', 600);
+            
+            const el = document.getElementById('l-'+id);
+            el.innerText = parseInt(el.innerText) + 1;
+            await supabaseClient.rpc('increment_likes', { row_id: id });
         }
 
         async function openCam() {
             document.getElementById('camera-modal').style.display = 'block';
-            const s = await navigator.mediaDevices.getUserMedia({video:{facingMode:currentFacing}});
+            const s = await navigator.mediaDevices.getUserMedia({video:{facingMode:currentFacing, width:1080}});
             document.getElementById('video').srcObject = s;
         }
 
@@ -158,25 +175,19 @@
             c.width = v.videoWidth; c.height = v.videoHeight;
             const ctx = c.getContext('2d');
             if(currentFacing==='user') { ctx.translate(c.width,0); ctx.scale(-1,1); }
-            ctx.drawImage(v, 0, 0);
-            
+            ctx.drawImage(v,0,0);
             const img = c.toDataURL('image/jpeg', 0.6);
+            
             await supabaseClient.from('spots').insert([{
-                id_tag: idTag, nome_posto: profile.name, descrizione: document.getElementById('desc-input').value, foto_url: img
+                id_tag: idTag, nome_posto: profile.name, descrizione: document.getElementById('desc-input').value, foto_url: img, likes: 0
             }]);
-            closeCam();
-            load();
+            closeCam(); load();
         }
 
-        function switchCamera() {
-            currentFacing = currentFacing === 'environment' ? 'user' : 'environment';
-            openCam();
-        }
+        function switchCamera() { currentFacing = currentFacing==='environment'?'user':'environment'; openCam(); }
+        function share() { window.open(`https://wa.me/?text=${encodeURIComponent('Vedi le tracce qui: '+location.href)}`); }
 
-        function share() { window.open(`https://wa.me/?text=${encodeURIComponent('Guarda qui: '+location.href)}`); }
-
-        goTo(1);
-        load();
+        goTo(1); load();
     </script>
 </body>
 </html>
