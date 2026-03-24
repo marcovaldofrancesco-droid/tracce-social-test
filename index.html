@@ -3,43 +3,59 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>TRACCE</title>
+    <title>TRACCE PRO</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <style>
         :root { --accent: #ff3b30; --bg: #000; }
-        * { box-sizing: border-box; font-family: -apple-system, sans-serif; }
+        * { box-sizing: border-box; font-family: -apple-system, sans-serif; -webkit-tap-highlight-color: transparent; }
         body { margin: 0; background: var(--bg); color: #fff; height: 100dvh; overflow: hidden; }
         
-        #main-slider { display: flex; width: 200vw; height: 100dvh; transition: 0.5s ease; }
+        #main-slider { display: flex; width: 200vw; height: 100dvh; transition: 0.6s cubic-bezier(0.2, 1, 0.2, 1); }
         .page { width: 100vw; height: 100dvh; position: relative; overflow-y: auto; padding-bottom: 120px; }
 
-        .spot-card { height: 100dvh; width: 100vw; scroll-snap-align: start; position: relative; }
+        /* Feed Card */
+        .spot-card { height: 100dvh; width: 100vw; scroll-snap-align: start; position: relative; background: #000; }
         .spot-img { width: 100%; height: 100%; object-fit: cover; }
-        .info { position: absolute; bottom: 150px; left: 20px; z-index: 10; }
+        .info { position: absolute; bottom: 150px; left: 25px; right: 25px; z-index: 10; }
+        .info h3 { margin: 0; font-size: 30px; font-weight: 900; letter-spacing: -1px; }
         
+        /* Audio Player Bar */
         .btn-audio { 
-            background: #fff; color: #000; border: none; padding: 15px 25px; 
-            border-radius: 30px; font-weight: bold; margin-top: 10px;
+            background: rgba(255,255,255,0.2); color: #fff; border: 1px solid rgba(255,255,255,0.3); 
+            padding: 12px 20px; border-radius: 40px; font-weight: bold; margin-top: 15px;
+            backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); display: flex; align-items: center; gap: 10px;
         }
+        .progress-container { width: 100%; height: 4px; background: rgba(255,255,255,0.2); border-radius: 2px; margin-top: 8px; display: none; overflow: hidden; }
+        .progress-bar { height: 100%; background: #fff; width: 0%; transition: width 0.1s linear; }
 
-        .nav { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); display: flex; gap: 30px; z-index: 1000; background: rgba(50,50,50,0.8); padding: 15px 30px; border-radius: 50px; backdrop-filter: blur(10px); }
-        .nav-btn { background: none; border: none; color: #fff; font-size: 20px; opacity: 0.5; }
+        /* Navigation */
+        .nav { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); display: flex; align-items: center; gap: 35px; z-index: 1000; background: rgba(30,30,30,0.8); padding: 12px 35px; border-radius: 50px; backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.1); }
+        .nav-btn { background: none; border: none; color: #fff; font-size: 22px; opacity: 0.4; }
         .nav-btn.active { opacity: 1; }
-        .add { width: 60px; height: 60px; background: var(--accent); border-radius: 50%; border: none; font-size: 30px; color: #fff; }
+        .add { width: 60px; height: 60px; background: #fff; border-radius: 50%; border: none; font-size: 30px; color: #000; font-weight: bold; }
 
+        /* Camera & Recording Bar */
         #cam-modal { position: fixed; inset: 0; background: #000; z-index: 2000; display: none; }
         #video { width: 100%; height: 100%; object-fit: cover; }
+        .rec-wave { position: absolute; top: 50px; left: 50%; transform: translateX(-50%); width: 60%; height: 4px; background: rgba(255,255,255,0.2); border-radius: 10px; display: none; }
+        .rec-fill { height: 100%; background: var(--accent); width: 0%; border-radius: 10px; }
+
+        #loader { position: fixed; inset: 0; background: #000; z-index: 9999; display: none; align-items: center; justify-content: center; font-weight: bold; }
     </style>
 </head>
 <body>
 
+<div id="loader">CARICAMENTO...</div>
+
 <div id="main-slider">
-    <div class="page" style="padding: 50px 20px;">
-        <h1 id="u-name" onclick="editName()">Ciao!</h1>
-        <input type="text" id="place-name" placeholder="Nome Posto" style="width:100%; padding:15px; margin-top:20px; border-radius:10px;">
-        <button onclick="genQR()" style="width:100%; padding:15px; margin-top:10px; border-radius:10px; background:#fff; font-weight:bold;">GENERA QR</button>
-        <div id="qrcode" style="margin-top:20px; display:none; justify-content:center; background:#fff; padding:10px;"></div>
+    <div class="page" style="padding: 60px 25px;">
+        <h1 id="u-name" onclick="editName()" style="font-size: 40px; font-weight: 900; margin:0;">Ciao!</h1>
+        <div style="background: #1c1c1e; padding: 25px; border-radius: 25px; margin-top: 30px;">
+            <input type="text" id="place-name" placeholder="Nome Posto..." style="width:100%; padding:15px; border-radius:12px; border:none; background:#2c2c2e; color:#fff; margin-bottom:10px;">
+            <button onclick="genQR()" style="width:100%; padding:15px; border-radius:12px; border:none; background:#fff; font-weight:bold; color:#000;">GENERA QR</button>
+            <div id="qrcode" style="margin-top:20px; display:none; justify-content:center; background:#fff; padding:15px; border-radius:15px;"></div>
+        </div>
     </div>
     <div class="page" id="gallery-feed" style="padding:0; scroll-snap-type: y mandatory;"></div>
 </div>
@@ -51,11 +67,12 @@
 </div>
 
 <div id="cam-modal">
+    <div class="rec-wave" id="rec-wave"><div class="rec-fill" id="rec-fill"></div></div>
     <video id="video" autoplay playsinline muted></video>
-    <div style="position:absolute; bottom:50px; width:100%; display:flex; justify-content:space-around;">
+    <div style="position:absolute; bottom:50px; width:100%; display:flex; justify-content:space-around; align-items:center;">
         <button onclick="closeCam()" style="color:#fff; background:none; border:none; font-size:30px;">✕</button>
-        <button onclick="capture()" style="width:70px; height:70px; border-radius:50%; border:5px solid #fff; background:none;"></button>
-        <button id="rec-btn" onclick="toggleRec()" style="width:50px; height:50px; border-radius:50%; background:gray; color:#fff;">🎤</button>
+        <button onclick="capture()" style="width:75px; height:75px; border-radius:50%; border:5px solid #fff; background:none;"></button>
+        <button id="rec-btn" onclick="toggleRec()" style="width:55px; height:55px; border-radius:50%; background:rgba(255,255,255,0.2); border:none; color:#fff; font-size:22px;">🎤</button>
     </div>
 </div>
 
@@ -69,6 +86,7 @@
     const idTag = new URLSearchParams(window.location.search).get('id');
     let profile = JSON.parse(localStorage.getItem('tracce_v4')) || { name: "Esploratore" };
     let mediaRecorder, chunks = [], audioBase64 = null;
+    let recInterval;
 
     document.getElementById('u-name').innerText = "Ciao, " + profile.name;
     if(idTag) { loadFeed(); goTo(1); }
@@ -77,46 +95,71 @@
         const { data } = await sb.from('spots').select('*').eq('id_tag', idTag).order('created_at', {ascending: false});
         const feed = document.getElementById('gallery-feed');
         if(data) {
-            feed.innerHTML = data.map(t => `
+            feed.innerHTML = data.map((t, i) => `
                 <div class="spot-card">
                     <img src="${t.foto_url}" class="spot-img">
                     <div class="info">
                         <h3>@${t.nome_posto}</h3>
-                        ${t.audio_url ? `<button class="btn-audio" onclick="playAudio('${t.audio_url}', this)">ASCOLTA</button>` : ''}
+                        ${t.audio_url ? `
+                            <button class="btn-audio" onclick="playAudio('${t.audio_url}', this, 'pbar-${i}', 'pcont-${i}')">▶ ASCOLTA</button>
+                            <div class="progress-container" id="pcont-${i}"><div class="progress-bar" id="pbar-${i}"></div></div>
+                        ` : ''}
                     </div>
                 </div>
             `).join('');
         }
     }
 
-    function playAudio(url, btn) {
+    function playAudio(url, btn, barId, contId) {
         const audio = new Audio(url);
-        btn.innerText = "CARICAMENTO...";
-        audio.play()
-            .then(() => btn.innerText = "RIPRODUZIONE...")
-            .catch(() => btn.innerText = "ERRORE (Tocca qui)");
-        audio.onended = () => btn.innerText = "ASCOLTA";
+        const bar = document.getElementById(barId);
+        const cont = document.getElementById(contId);
+        
+        cont.style.display = 'block';
+        btn.innerText = "⌛...";
+
+        audio.ontimeupdate = () => {
+            const pct = (audio.currentTime / audio.duration) * 100;
+            bar.style.width = pct + "%";
+        };
+
+        audio.play().then(() => btn.innerText = "🎵 RIPRODUZIONE").catch(() => btn.innerText = "⚠️ TOCCA DI NUOVO");
+        audio.onended = () => { btn.innerText = "▶ ASCOLTA"; cont.style.display = 'none'; bar.style.width = "0%"; };
     }
 
     async function toggleRec() {
         const btn = document.getElementById('rec-btn');
+        const wave = document.getElementById('rec-wave');
+        const fill = document.getElementById('rec-fill');
+
         if(!mediaRecorder || mediaRecorder.state === 'inactive') {
             const stream = await navigator.mediaDevices.getUserMedia({audio: true});
             mediaRecorder = new MediaRecorder(stream);
             chunks = [];
+            
             mediaRecorder.ondataavailable = e => chunks.push(e.data);
             mediaRecorder.onstop = () => {
                 const blob = new Blob(chunks, {type: 'audio/webm'});
                 const reader = new FileReader();
                 reader.readAsDataURL(blob);
-                reader.onloadend = () => { audioBase64 = reader.result; btn.style.background = "green"; };
+                reader.onloadend = () => { audioBase64 = reader.result; btn.innerText = "✅"; btn.style.background = "#4cd964"; };
+                clearInterval(recInterval);
+                wave.style.display = 'none';
             };
+
             mediaRecorder.start();
-            btn.style.background = "red";
-        } else { mediaRecorder.stop(); }
+            btn.innerText = "⏹"; btn.style.background = "red";
+            wave.style.display = 'block';
+            let p = 0;
+            recInterval = setInterval(() => { p = (p + 2) % 100; fill.style.width = p + "%"; }, 50);
+        } else {
+            mediaRecorder.stop();
+            mediaRecorder.stream.getTracks().forEach(t => t.stop());
+        }
     }
 
     async function capture() {
+        document.getElementById('loader').style.display = 'flex';
         const v = document.getElementById('video');
         const c = document.getElementById('canvas');
         c.width = 720; c.height = (v.videoHeight / v.videoWidth) * 720;
@@ -136,13 +179,13 @@
         document.getElementById('btn-p').classList.toggle('active', p===0);
         document.getElementById('btn-f').classList.toggle('active', p===1);
     }
-    function editName() { const n = prompt("Nome:"); if(n) { profile.name = n; localStorage.setItem('tracce_v4', JSON.stringify(profile)); location.reload(); }}
+    function editName() { const n = prompt("Tuo nome:"); if(n) { profile.name = n; localStorage.setItem('tracce_v4', JSON.stringify(profile)); location.reload(); }}
     function genQR() { 
         const n = document.getElementById('place-name').value; 
         const url = window.location.origin + window.location.pathname + "?id=" + encodeURIComponent(n);
         const qr = document.getElementById('qrcode');
         qr.style.display = 'flex'; qr.innerHTML = "";
-        new QRCode(qr, {text: url, width: 150, height: 150});
+        new QRCode(qr, {text: url, width: 200, height: 200});
     }
 </script>
 </body>
