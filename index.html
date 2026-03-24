@@ -3,38 +3,49 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>TRACCE AUDIO FIX</title>
+    <title>TRACCE CHRONO</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <style>
         :root { --accent: #ff3b30; --bg: #000; }
         * { box-sizing: border-box; font-family: -apple-system, sans-serif; }
         body { margin: 0; background: #000; color: #fff; height: 100dvh; overflow: hidden; }
-        #main-slider { display: flex; width: 200vw; height: 100dvh; transition: 0.5s; }
+        #main-slider { display: flex; width: 200vw; height: 100dvh; transition: 0.6s cubic-bezier(0.2, 1, 0.2, 1); }
         .page { width: 100vw; height: 100dvh; position: relative; overflow-y: auto; padding-bottom: 120px; }
         #gallery-feed { height: 100%; width: 100%; overflow-y: scroll; scroll-snap-type: y mandatory; }
         .spot-card { height: 100dvh; width: 100vw; scroll-snap-align: start; position: relative; background: #111; }
         .spot-img { width: 100%; height: 100%; object-fit: cover; }
-        .info { position: absolute; bottom: 130px; left: 20px; right: 20px; z-index: 10; }
-        .btn-audio { background: var(--accent); color: #fff; border: none; padding: 15px 25px; border-radius: 30px; font-weight: bold; margin-top: 10px; box-shadow: 0 4px 15px rgba(255,59,48,0.3); }
-        .nav { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); display: flex; gap: 20px; z-index: 1000; background: rgba(0,0,0,0.8); padding: 12px 30px; border-radius: 50px; border: 1px solid #333; backdrop-filter: blur(10px); }
-        .add { width: 60px; height: 60px; background: var(--accent); border-radius: 50%; border: none; color: #fff; font-size: 30px; font-weight: bold; }
+        
+        /* INFO E REPRODUCTION BAR */
+        .info { position: absolute; bottom: 135px; left: 20px; right: 20px; z-index: 10; }
+        .audio-container { margin-top: 10px; width: fit-content; }
+        .btn-audio { background: var(--accent); color: #fff; border: none; padding: 12px 20px; border-radius: 25px; font-weight: 900; font-size: 13px; cursor: pointer; }
+        .play-bar-bg { width: 100%; height: 4px; background: rgba(255,255,255,0.2); border-radius: 2px; margin-top: 6px; display: none; overflow: hidden; }
+        .play-bar-fill { height: 100%; background: #fff; width: 0%; }
+
+        /* CAMERA UI & CHRONO */
         #cam-modal { position: fixed; inset: 0; background: #000; z-index: 2000; display: none; }
         #video { width: 100%; height: 100%; object-fit: cover; }
-        .cam-ui { position: absolute; bottom: 40px; width: 100%; display: flex; justify-content: space-around; align-items: center; padding: 0 20px; }
-        #loader { position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 9999; display: none; align-items: center; justify-content: center; font-weight: bold; }
+        .cam-ui { position: absolute; bottom: 40px; width: 100%; display: flex; flex-direction: column; align-items: center; gap: 20px; }
+        .chrono-container { width: 80%; text-align: center; display: none; }
+        .chrono-bar-bg { width: 100%; height: 6px; background: rgba(255,255,255,0.2); border-radius: 3px; overflow: hidden; margin-top: 5px; }
+        .chrono-bar-fill { height: 100%; background: var(--accent); width: 0%; }
+        
+        .nav { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); display: flex; gap: 25px; z-index: 1000; background: rgba(0,0,0,0.8); padding: 12px 30px; border-radius: 50px; border: 1px solid #333; backdrop-filter: blur(15px); }
+        .add { width: 65px; height: 65px; background: var(--accent); border-radius: 50%; border: none; color: #fff; font-size: 35px; font-weight: bold; box-shadow: 0 0 20px rgba(255,59,48,0.4); }
+        #loader { position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 9999; display: none; align-items: center; justify-content: center; font-weight: 800; letter-spacing: 1px; }
     </style>
 </head>
 <body>
 
-<div id="loader">SALVATAGGIO...</div>
+<div id="loader">SALVATAGGIO TRACCIA...</div>
 
 <div id="main-slider">
     <div class="page" style="padding: 40px 25px;">
-        <h1 id="u-name" onclick="editName()">Esploratore</h1>
+        <h1 id="u-name" onclick="editName()" style="font-size: 35px; letter-spacing: -1px;">Esploratore</h1>
         <div style="margin-top:40px; background:#111; padding:25px; border-radius:25px; border: 1px solid #222;">
-            <input type="text" id="place-name" placeholder="Nome nuovo posto..." style="width:100%; padding:15px; border-radius:10px; border:1px solid #333; background:#000; color:#fff;">
-            <button onclick="genQR()" style="width:100%; padding:15px; font-weight:bold; background:#fff; color:#000; border:none; border-radius:10px; margin-top:10px;">CREA QR CODE</button>
+            <input type="text" id="place-name" placeholder="Nome nuovo posto..." style="width:100%; padding:15px; border-radius:12px; border:1px solid #333; background:#000; color:#fff;">
+            <button onclick="genQR()" style="width:100%; padding:15px; font-weight:bold; background:#fff; color:#000; border:none; border-radius:12px; margin-top:10px;">CREA QR CODE</button>
             <div id="qrcode" style="margin-top:20px; background:#fff; padding:15px; display:none; justify-content:center; border-radius:15px;"></div>
         </div>
     </div>
@@ -44,9 +55,15 @@
 <div id="cam-modal">
     <video id="video" autoplay playsinline muted></video>
     <div class="cam-ui">
-        <button onclick="closeCam()" style="color:#fff; background:none; border:none; font-size:30px;">✕</button>
-        <button onclick="capture()" style="width:75px; height:75px; border-radius:50%; border:5px solid #fff; background:none;"></button>
-        <button id="rec-btn" onclick="toggleRec()" style="color:#fff; background:rgba(255,255,255,0.2); border:none; width:55px; height:55px; border-radius:50%; font-size:22px;">🎤</button>
+        <div class="chrono-container" id="chrono-ui">
+            <span id="chrono-text" style="font-size: 12px; font-weight: 900; color: var(--accent);">REGISTRAZIONE...</span>
+            <div class="chrono-bar-bg"><div class="chrono-bar-fill" id="chrono-fill"></div></div>
+        </div>
+        <div style="display:flex; align-items:center; gap:40px;">
+            <button onclick="closeCam()" style="color:#fff; background:none; border:none; font-size:30px;">✕</button>
+            <button onclick="capture()" style="width:80px; height:80px; border-radius:50%; border:6px solid #fff; background:none;"></button>
+            <button id="rec-btn" onclick="toggleRec()" style="color:#fff; background:rgba(255,255,255,0.2); border:none; width:55px; height:55px; border-radius:50%; font-size:22px;">🎤</button>
+        </div>
     </div>
 </div>
 
@@ -65,7 +82,8 @@
 
     const idTag = new URLSearchParams(window.location.search).get('id');
     let profile = JSON.parse(localStorage.getItem('tracce_v4')) || { name: "Esploratore" };
-    let mediaRecorder, chunks = [], audioBase64 = null;
+    let mediaRecorder, chunks = [], audioBase64 = null, recInterval;
+    const MAX_REC_TIME = 20; // 20 secondi max
 
     if(idTag) { loadFeed(); goTo(1); }
 
@@ -73,48 +91,86 @@
         const { data } = await sb.from('spots').select('*').eq('id_tag', idTag).order('created_at', {ascending: false});
         const feed = document.getElementById('gallery-feed');
         if(data && data.length > 0) {
-            feed.innerHTML = data.map(t => `
+            feed.innerHTML = data.map((t, i) => `
                 <div class="spot-card">
                     <img src="${t.foto_url}" class="spot-img">
                     <div class="info">
-                        <h3 style="margin:0; font-size:24px;">@${t.nome_posto}</h3>
-                        ${t.audio_url ? `<button class="btn-audio" onclick="playAudio('${t.audio_url}')">🔊 ASCOLTA</button>` : ''}
+                        <h3 style="margin:0; font-size:26px; font-weight:900;">@${t.nome_posto}</h3>
+                        ${t.audio_url ? `
+                            <div class="audio-container">
+                                <button class="btn-audio" onclick="playAudio('${t.audio_url}', this, 'pbar-${i}')">🔊 ASCOLTA</button>
+                                <div class="play-bar-bg" id="pwrap-${i}"><div class="play-bar-fill" id="pbar-${i}"></div></div>
+                            </div>
+                        ` : ''}
                     </div>
                 </div>
             `).join('');
         }
     }
 
-    // Fix riproduzione iOS/Android
-    function playAudio(base64) {
+    function playAudio(base64, btn, barId) {
         const audio = new Audio(base64);
-        audio.play().catch(() => alert("Premi di nuovo il tasto Play o sblocca il silenzioso!"));
+        const bar = document.getElementById(barId);
+        const wrap = document.getElementById('pwrap-' + barId.split('-')[1]);
+        
+        wrap.style.display = 'block';
+        btn.innerText = "⏳...";
+
+        audio.ontimeupdate = () => {
+            const pct = (audio.currentTime / audio.duration) * 100;
+            bar.style.width = pct + "%";
+        };
+
+        audio.play().then(() => {
+            btn.innerText = "🎵 IN ASCOLTO";
+        }).catch(() => { btn.innerText = "❌ ERRORE"; });
+
+        audio.onended = () => {
+            btn.innerText = "🔊 ASCOLTA";
+            wrap.style.display = 'none';
+            bar.style.width = "0%";
+        };
     }
 
     async function toggleRec() {
         const btn = document.getElementById('rec-btn');
+        const chronoUI = document.getElementById('chrono-ui');
+        const chronoFill = document.getElementById('chrono-fill');
+
         if(!mediaRecorder || mediaRecorder.state === 'inactive') {
-            try {
-                const stream = await navigator.mediaDevices.getUserMedia({audio: true});
-                // Cerchiamo il formato più compatibile (mp4 o webm)
-                const options = { mimeType: MediaRecorder.isTypeSupported('audio/mp4') ? 'audio/mp4' : 'audio/webm' };
-                mediaRecorder = new MediaRecorder(stream, options);
-                chunks = [];
-                mediaRecorder.ondataavailable = e => chunks.push(e.data);
-                mediaRecorder.onstop = () => {
-                    const blob = new Blob(chunks, { type: options.mimeType });
-                    const reader = new FileReader();
-                    reader.readAsDataURL(blob);
-                    reader.onloadend = () => { audioBase64 = reader.result; btn.innerText = "✅"; btn.style.background = "#4cd964"; };
+            const stream = await navigator.mediaDevices.getUserMedia({audio: true});
+            const mime = MediaRecorder.isTypeSupported('audio/mp4') ? 'audio/mp4' : 'audio/webm';
+            mediaRecorder = new MediaRecorder(stream, { mimeType: mime });
+            chunks = [];
+            
+            chronoUI.style.display = 'block';
+            let elapsed = 0;
+            recInterval = setInterval(() => {
+                elapsed += 0.1;
+                chronoFill.style.width = (elapsed / MAX_REC_TIME * 100) + "%";
+                if(elapsed >= MAX_REC_TIME) toggleRec();
+            }, 100);
+
+            mediaRecorder.ondataavailable = e => chunks.push(e.data);
+            mediaRecorder.onstop = () => {
+                clearInterval(recInterval);
+                const blob = new Blob(chunks, { type: mime });
+                const reader = new FileReader();
+                reader.readAsDataURL(blob);
+                reader.onloadend = () => { 
+                    audioBase64 = reader.result; 
+                    btn.innerText = "✅"; btn.style.background = "#4cd964"; 
+                    chronoUI.style.display = 'none';
                 };
-                mediaRecorder.start();
-                btn.innerText = "🔴"; btn.style.background = "#ff3b30";
-            } catch(e) { alert("Attiva il microfono nelle impostazioni del browser!"); }
-        } else { mediaRecorder.stop(); }
+            };
+            mediaRecorder.start();
+            btn.innerText = "🔴"; btn.style.background = "#ff3b30";
+        } else {
+            mediaRecorder.stop();
+        }
     }
 
     async function capture() {
-        if(!audioBase64) { if(!confirm("Vuoi salvare senza audio?")) return; }
         document.getElementById('loader').style.display = 'flex';
         const v = document.getElementById('video');
         const c = document.getElementById('canvas');
@@ -129,8 +185,6 @@
     function openCam() { 
         document.getElementById('cam-modal').style.display = 'block'; 
         navigator.mediaDevices.getUserMedia({video: {facingMode:'environment'}}).then(s => document.getElementById('video').srcObject = s);
-        // Sblocco audio "preventivo" per iOS
-        const a = new Audio(); a.play().catch(()=>{});
     }
     function closeCam() { document.getElementById('cam-modal').style.display = 'none'; const s = document.getElementById('video').srcObject; if(s) s.getTracks().forEach(t => t.stop()); }
     function goTo(p) { document.getElementById('main-slider').style.transform = `translateX(-${p * 100}vw)`; }
