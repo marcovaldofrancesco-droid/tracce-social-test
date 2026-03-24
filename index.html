@@ -8,7 +8,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <style>
         :root { --accent: #ff3b30; --bg: #000; }
-        * { box-sizing: border-box; font-family: -apple-system, sans-serif; -webkit-tap-highlight-color: transparent; }
+        * { box-sizing: border-box; font-family: -apple-system, sans-serif; }
         body { margin: 0; background: var(--bg); color: #fff; height: 100dvh; overflow: hidden; }
         
         #main-slider { display: flex; width: 200vw; height: 100dvh; transition: 0.5s ease; }
@@ -16,16 +16,12 @@
 
         .spot-card { height: 100dvh; width: 100vw; scroll-snap-align: start; position: relative; }
         .spot-img { width: 100%; height: 100%; object-fit: cover; }
-        .info { position: absolute; bottom: 150px; left: 20px; z-index: 10; right: 20px; }
+        .info { position: absolute; bottom: 150px; left: 20px; z-index: 10; }
         
         .btn-audio { 
             background: #fff; color: #000; border: none; padding: 15px 25px; 
-            border-radius: 30px; font-weight: bold; margin-top: 10px; width: auto;
+            border-radius: 30px; font-weight: bold; margin-top: 10px;
         }
-
-        /* Barre di Riproduzione */
-        .progress-cont { width: 100%; height: 4px; background: rgba(255,255,255,0.2); border-radius: 2px; margin-top: 10px; display: none; }
-        .progress-bar { height: 100%; background: #fff; width: 0%; transition: width 0.1s linear; }
 
         .nav { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); display: flex; gap: 30px; z-index: 1000; background: rgba(50,50,50,0.8); padding: 15px 30px; border-radius: 50px; backdrop-filter: blur(10px); }
         .nav-btn { background: none; border: none; color: #fff; font-size: 20px; opacity: 0.5; }
@@ -34,12 +30,6 @@
 
         #cam-modal { position: fixed; inset: 0; background: #000; z-index: 2000; display: none; }
         #video { width: 100%; height: 100%; object-fit: cover; }
-        
-        /* Indicatore Registrazione */
-        #rec-indicator { 
-            position: absolute; top: 40px; width: 100%; text-align: center; 
-            color: red; font-weight: bold; display: none; font-size: 14px; letter-spacing: 1px;
-        }
     </style>
 </head>
 <body>
@@ -47,7 +37,7 @@
 <div id="main-slider">
     <div class="page" style="padding: 50px 20px;">
         <h1 id="u-name" onclick="editName()">Ciao!</h1>
-        <input type="text" id="place-name" placeholder="Nome Posto" style="width:100%; padding:15px; margin-top:20px; border-radius:10px; border: none;">
+        <input type="text" id="place-name" placeholder="Nome Posto" style="width:100%; padding:15px; margin-top:20px; border-radius:10px;">
         <button onclick="genQR()" style="width:100%; padding:15px; margin-top:10px; border-radius:10px; background:#fff; font-weight:bold;">GENERA QR</button>
         <div id="qrcode" style="margin-top:20px; display:none; justify-content:center; background:#fff; padding:10px;"></div>
     </div>
@@ -61,12 +51,11 @@
 </div>
 
 <div id="cam-modal">
-    <div id="rec-indicator">● REGISTRAZIONE IN CORSO</div>
     <video id="video" autoplay playsinline muted></video>
-    <div style="position:absolute; bottom:50px; width:100%; display:flex; justify-content:space-around; align-items:center;">
+    <div style="position:absolute; bottom:50px; width:100%; display:flex; justify-content:space-around;">
         <button onclick="closeCam()" style="color:#fff; background:none; border:none; font-size:30px;">✕</button>
         <button onclick="capture()" style="width:70px; height:70px; border-radius:50%; border:5px solid #fff; background:none;"></button>
-        <button id="rec-btn" onclick="toggleRec()" style="width:50px; height:50px; border-radius:50%; background:gray; color:#fff; border:none;">🎤</button>
+        <button id="rec-btn" onclick="toggleRec()" style="width:50px; height:50px; border-radius:50%; background:gray; color:#fff;">🎤</button>
     </div>
 </div>
 
@@ -88,51 +77,29 @@
         const { data } = await sb.from('spots').select('*').eq('id_tag', idTag).order('created_at', {ascending: false});
         const feed = document.getElementById('gallery-feed');
         if(data) {
-            feed.innerHTML = data.map((t, i) => `
+            feed.innerHTML = data.map(t => `
                 <div class="spot-card">
                     <img src="${t.foto_url}" class="spot-img">
                     <div class="info">
                         <h3>@${t.nome_posto}</h3>
-                        ${t.audio_url ? `
-                            <button class="btn-audio" onclick="playAudio('${t.audio_url}', this, 'bar-${i}', 'cont-${i}')">ASCOLTA</button>
-                            <div class="progress-cont" id="cont-${i}"><div class="progress-bar" id="bar-${i}"></div></div>
-                        ` : ''}
+                        ${t.audio_url ? `<button class="btn-audio" onclick="playAudio('${t.audio_url}', this)">ASCOLTA</button>` : ''}
                     </div>
                 </div>
             `).join('');
         }
     }
 
-    function playAudio(url, btn, barId, contId) {
+    function playAudio(url, btn) {
         const audio = new Audio(url);
-        const bar = document.getElementById(barId);
-        const cont = document.getElementById(contId);
-        
         btn.innerText = "CARICAMENTO...";
-        cont.style.display = 'block';
-
-        audio.ontimeupdate = () => {
-            const pct = (audio.currentTime / audio.duration) * 100;
-            bar.style.width = pct + "%";
-        };
-
         audio.play()
             .then(() => btn.innerText = "RIPRODUZIONE...")
-            .catch(() => {
-                btn.innerText = "ERRORE (Tocca qui)";
-                cont.style.display = 'none';
-            });
-
-        audio.onended = () => {
-            btn.innerText = "ASCOLTA";
-            cont.style.display = 'none';
-            bar.style.width = "0%";
-        };
+            .catch(() => btn.innerText = "ERRORE (Tocca qui)");
+        audio.onended = () => btn.innerText = "ASCOLTA";
     }
 
     async function toggleRec() {
         const btn = document.getElementById('rec-btn');
-        const indicator = document.getElementById('rec-indicator');
         if(!mediaRecorder || mediaRecorder.state === 'inactive') {
             const stream = await navigator.mediaDevices.getUserMedia({audio: true});
             mediaRecorder = new MediaRecorder(stream);
@@ -142,29 +109,19 @@
                 const blob = new Blob(chunks, {type: 'audio/webm'});
                 const reader = new FileReader();
                 reader.readAsDataURL(blob);
-                reader.onloadend = () => { 
-                    audioBase64 = reader.result; 
-                    btn.style.background = "green"; 
-                    btn.innerText = "✅";
-                };
-                indicator.style.display = 'none';
-                stream.getTracks().forEach(track => track.stop());
+                reader.onloadend = () => { audioBase64 = reader.result; btn.style.background = "green"; };
             };
             mediaRecorder.start();
             btn.style.background = "red";
-            btn.innerText = "⏹";
-            indicator.style.display = 'block';
-        } else { 
-            mediaRecorder.stop(); 
-        }
+        } else { mediaRecorder.stop(); }
     }
 
     async function capture() {
         const v = document.getElementById('video');
         const c = document.getElementById('canvas');
-        c.width = 640; c.height = 480; // Leggermente più piccola per velocità
-        c.getContext('2d').drawImage(v, 0, 0, 640, 480);
-        const foto = c.toDataURL('image/jpeg', 0.5);
+        c.width = 720; c.height = (v.videoHeight / v.videoWidth) * 720;
+        c.getContext('2d').drawImage(v, 0, 0, c.width, c.height);
+        const foto = c.toDataURL('image/jpeg', 0.6);
         await sb.from('spots').insert([{ id_tag: idTag, nome_posto: profile.name, foto_url: foto, audio_url: audioBase64 }]);
         location.reload();
     }
