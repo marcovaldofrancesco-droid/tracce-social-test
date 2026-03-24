@@ -99,50 +99,76 @@
         }
     }
 
+    // FUNZIONE AUDIO AGGIORNATA PER IPHONE
     function playAudio(url, btn, barId, contId) {
-        const audio = new Audio();
+        // Creiamo l'elemento audio immediatamente al click
+        if (!window.currentAudio) window.currentAudio = new Audio();
+        
+        const audio = window.currentAudio;
         audio.src = url;
-        audio.crossOrigin = "anonymous"; // Per evitare blocchi sicurezza
+        audio.preload = "auto";
+        
         const bar = document.getElementById(barId);
         const cont = document.getElementById(contId);
         
         btn.innerText = "CARICAMENTO...";
-        cont.style.display = 'block';
+        
+        audio.onplay = () => {
+            btn.innerText = "IN RIPRODUZIONE";
+            cont.style.display = 'block';
+        };
 
-        audio.ontimeupdate = () => { bar.style.width = (audio.currentTime / audio.duration * 100) + "%"; };
-        audio.play().then(() => { btn.innerText = "IN RIPRODUZIONE"; })
-        .catch(e => { 
-            console.error(e);
-            btn.innerText = "TOCCA DI NUOVO"; 
+        audio.ontimeupdate = () => {
+            if (audio.duration) {
+                bar.style.width = (audio.currentTime / audio.duration * 100) + "%";
+            }
+        };
+
+        // Il segreto: chiamare play() immediatamente dentro l'evento click
+        const playPromise = audio.play();
+
+        if (playPromise !== undefined) {
+            playPromise.then(() => {
+                // Audio partito!
+            }).catch(error => {
+                console.log("Blocco Safari: richiede secondo tocco");
+                btn.innerText = "TOCCA DI NUOVO PER SBLOCCARE";
+                cont.style.display = 'none';
+            });
+        }
+
+        audio.onended = () => {
+            btn.innerText = "ASCOLTA";
             cont.style.display = 'none';
-        });
-        audio.onended = () => { btn.innerText = "ASCOLTA"; cont.style.display = 'none'; bar.style.width = "0%"; };
+            bar.style.width = "0%";
+        };
     }
 
     async function toggleRec() {
         const btn = document.getElementById('rec-btn');
         const notif = document.getElementById('rec-notif');
         if(!mediaRecorder || mediaRecorder.state === 'inactive') {
-            const stream = await navigator.mediaDevices.getUserMedia({audio: true});
-            // Forza formato AAC se disponibile (meglio per iOS)
-            const options = MediaRecorder.isTypeSupported('audio/mp4') ? {mimeType: 'audio/mp4'} : {};
-            mediaRecorder = new MediaRecorder(stream, options);
-            chunks = [];
-            mediaRecorder.ondataavailable = e => chunks.push(e.data);
-            mediaRecorder.onstop = () => {
-                const blob = new Blob(chunks, {type: options.mimeType || 'audio/webm'});
-                const reader = new FileReader();
-                reader.readAsDataURL(blob);
-                reader.onloadend = () => { 
-                    audioBase64 = reader.result; 
-                    btn.style.background = "#4cd964"; 
-                    btn.innerText = "✅";
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({audio: true});
+                const mime = MediaRecorder.isTypeSupported('audio/mp4') ? 'audio/mp4' : 'audio/webm';
+                mediaRecorder = new MediaRecorder(stream, {mimeType: mime});
+                chunks = [];
+                mediaRecorder.ondataavailable = e => chunks.push(e.data);
+                mediaRecorder.onstop = () => {
+                    const blob = new Blob(chunks, {type: mime});
+                    const reader = new FileReader();
+                    reader.readAsDataURL(blob);
+                    reader.onloadend = () => { 
+                        audioBase64 = reader.result; 
+                        btn.style.background = "#4cd964"; 
+                        btn.innerText = "✅";
+                    };
+                    notif.style.display = 'none';
+                    stream.getTracks().forEach(t => t.stop());
                 };
-                notif.style.display = 'none';
-                stream.getTracks().forEach(t => t.stop());
-            };
-            mediaRecorder.start();
-            btn.style.background = "red"; btn.innerText = "⏹"; notif.style.display = 'block';
+                mediaRecorder.start();
+                btn.style.background = "red"; btn.innerText = "⏹"; notif.style.display = 'block';
+            } catch(e) { alert("Attiva il microfono nelle impostazioni!"); }
         } else { mediaRecorder.stop(); }
     }
 
@@ -154,15 +180,25 @@
         c.width = 640; c.height = 480;
         c.getContext('2d').drawImage(v, 0, 0, 640, 480);
         const foto = c.toDataURL('image/jpeg', 0.5);
+        
+        // Messaggio di attesa
+        btn.innerText = "INVIO...";
+        
         await sb.from('spots').insert([{ id_tag: idTag, nome_posto: profile.name, foto_url: foto, audio_url: audioBase64 }]);
         location.reload();
     }
 
     function openCam() { 
         document.getElementById('cam-modal').style.display = 'block'; 
-        navigator.mediaDevices.getUserMedia({video: {facingMode:'environment'}}).then(s => document.getElementById('video').srcObject = s);
+        navigator.mediaDevices.getUserMedia({video: {facingMode:'environment'}})
+            .then(s => document.getElementById('video').srcObject = s)
+            .catch(e => alert("Attiva la fotocamera!"));
     }
-    function closeCam() { document.getElementById('cam-modal').style.display = 'none'; }
+    function closeCam() { 
+        const v = document.getElementById('video');
+        if(v.srcObject) v.srcObject.getTracks().forEach(t => t.stop());
+        document.getElementById('cam-modal').style.display = 'none'; 
+    }
     function goTo(p) { document.getElementById('slider').style.transform = `translateX(-${p * 100}vw)`; }
     function editName() { const n = prompt("Tuo nome:"); if(n) { profile.name = n; localStorage.setItem('tracce_v4', JSON.stringify(profile)); location.reload(); }}
     function genQR() { 
@@ -170,7 +206,7 @@
         if(!n) return alert("Scrivi un nome!");
         const qr = document.getElementById('qrcode');
         qr.style.display = 'flex'; qr.innerHTML = "";
-        new QRCode(qr, {text: window.location.origin + window.location.pathname + "?id=" + n, width: 150, height: 150});
+        new QRCode(qr, {text: window.location.origin + window.location.pathname + "?id=" + encodeURIComponent(n), width: 150, height: 150});
     }
 </script>
 </body>
