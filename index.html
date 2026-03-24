@@ -2,151 +2,122 @@
 <html lang="it">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>TRACCE</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <style>
-        :root { --accent: #ff3b30; --bg: #000; }
-        * { box-sizing: border-box; font-family: -apple-system, sans-serif; -webkit-tap-highlight-color: transparent; }
-        body { margin: 0; background: #000; color: #fff; height: 100dvh; overflow: hidden; }
-        
-        #main-slider { display: flex; width: 200vw; height: 100dvh; transition: 0.5s ease; }
-        .page { width: 100vw; height: 100dvh; position: relative; overflow-y: auto; padding-bottom: 120px; }
-
-        .spot-card { height: 100dvh; width: 100vw; scroll-snap-align: start; position: relative; }
-        .spot-img { width: 100%; height: 100%; object-fit: cover; }
-        .info { position: absolute; bottom: 150px; left: 20px; right: 20px; z-index: 10; }
-        
-        .btn-audio { background: #fff; color: #000; border: none; padding: 15px 25px; border-radius: 30px; font-weight: bold; }
-        .p-cont { width: 100%; height: 4px; background: rgba(255,255,255,0.3); border-radius: 2px; margin-top: 10px; display: none; }
-        .p-bar { height: 100%; background: #fff; width: 0%; }
-
-        .nav { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); display: flex; gap: 30px; z-index: 1000; background: rgba(30,30,30,0.9); padding: 15px 35px; border-radius: 50px; }
-        .add { width: 60px; height: 60px; background: #fff; border-radius: 50%; border: none; font-size: 30px; color: #000; font-weight: bold; }
-        
-        #cam-modal { position: fixed; inset: 0; background: #000; z-index: 2000; display: none; }
-        #video { width: 100%; height: 100%; object-fit: cover; }
-        .rec-ind { position: absolute; top: 40px; left: 50%; transform: translateX(-50%); color: red; font-weight: bold; display: none; }
+        body { margin: 0; background: #000; color: #fff; font-family: sans-serif; overflow: hidden; }
+        #slider { display: flex; width: 200vw; height: 100vh; transition: 0.4s; }
+        .page { width: 100vw; height: 100vh; overflow-y: auto; position: relative; }
+        .card { height: 100vh; position: relative; border-bottom: 1px solid #222; }
+        .img { width: 100%; height: 100%; object-fit: cover; }
+        .info { position: absolute; bottom: 120px; left: 20px; z-index: 5; }
+        .btn-play { background: #fff; color: #000; border: none; padding: 12px 20px; border-radius: 20px; font-weight: bold; }
+        .nav { position: fixed; bottom: 20px; width: 100%; display: flex; justify-content: center; gap: 40px; z-index: 10; }
+        #cam { position: fixed; inset: 0; background: #000; z-index: 20; display: none; }
+        video { width: 100%; height: 100%; object-fit: cover; }
+        .controls { position: absolute; bottom: 40px; width: 100%; display: flex; justify-content: space-around; }
     </style>
 </head>
 <body>
 
-<div id="main-slider">
-    <div class="page" style="padding: 50px 20px;">
-        <h1 id="u-name" onclick="editName()">Ciao!</h1>
-        <input type="text" id="place-name" placeholder="Nome Posto" style="width:100%; padding:15px; margin-top:20px; border-radius:10px; border:none;">
-        <button onclick="genQR()" style="width:100%; padding:15px; margin-top:10px; border-radius:10px; background:#fff; font-weight:bold;">GENERA QR</button>
-        <div id="qrcode" style="margin-top:20px; display:none; justify-content:center; background:#fff; padding:10px;"></div>
+<div id="slider">
+    <div class="page" style="padding: 40px 20px;">
+        <h2 id="name-display" onclick="changeName()">Ciao!</h2>
+        <input type="text" id="tag-input" placeholder="Nome Posto" style="width:100%; padding:15px; border-radius:10px;">
+        <button onclick="makeQR()" style="width:100%; padding:15px; margin-top:10px; background:#fff; font-weight:bold;">GENERA QR</button>
+        <div id="qr-out" style="margin-top:20px; display:none; background:#fff; padding:10px;"></div>
     </div>
-    <div class="page" id="gallery-feed" style="padding:0; scroll-snap-type: y mandatory;"></div>
+    <div class="page" id="feed"></div>
 </div>
 
 <div class="nav">
-    <button onclick="goTo(0)" style="background:none; border:none; color:#fff; font-size:20px;">👤</button>
-    <button class="add" onclick="openCam()">+</button>
-    <button onclick="goTo(1)" style="background:none; border:none; color:#fff; font-size:20px;">🏠</button>
+    <button onclick="move(0)" style="color:#fff; background:none; border:none; font-size:24px;">👤</button>
+    <button onclick="startCam()" style="background:#fff; border:none; width:50px; height:50px; border-radius:50%; font-size:24px;">+</button>
+    <button onclick="move(1)" style="color:#fff; background:none; border:none; font-size:24px;">🏠</button>
 </div>
 
-<div id="cam-modal">
-    <div class="rec-ind" id="rec-ind">REC ●</div>
-    <video id="video" autoplay playsinline muted></video>
-    <div style="position:absolute; bottom:50px; width:100%; display:flex; justify-content:space-around; align-items:center;">
-        <button onclick="closeCam()" style="color:#fff; background:none; border:none; font-size:30px;">✕</button>
-        <button onclick="capture()" style="width:75px; height:75px; border-radius:50%; border:5px solid #fff; background:none;"></button>
-        <button id="rec-btn" onclick="toggleRec()" style="width:55px; height:55px; border-radius:50%; background:gray; border:none; color:#fff; font-size:20px;">🎤</button>
+<div id="cam">
+    <video id="v" autoplay playsinline muted></video>
+    <div class="controls">
+        <button onclick="stopCam()" style="color:#fff; background:none; border:none;">CHIUDI</button>
+        <button onclick="snap()" style="width:70px; height:70px; border-radius:50%; border:4px solid #fff; background:none;"></button>
+        <button id="rec" onclick="doRec()" style="background:gray; color:#fff; border:none; padding:10px; border-radius:10px;">🎤 REC</button>
     </div>
 </div>
 
-<canvas id="canvas" style="display:none;"></canvas>
+<canvas id="c" style="display:none;"></canvas>
 
 <script>
     const S_URL = 'https://gdsrmowtzcahbtagxoft.supabase.co';
     const S_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdkc3Jtb3d0emNhaGJ0YWd4b2Z0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM5MTgzNDEsImV4cCI6MjA4OTQ5NDM0MX0.Ep-DcUjW1FnZduH-QIWUxyI0juRSLJS_K2TDM56DkCk';
     const sb = supabase.createClient(S_URL, S_KEY);
 
-    const idTag = new URLSearchParams(window.location.search).get('id');
-    let profile = JSON.parse(localStorage.getItem('tracce_v4')) || { name: "Esploratore" };
-    let mediaRecorder, chunks = [], audioBase64 = null;
+    const id = new URLSearchParams(window.location.search).get('id');
+    let user = JSON.parse(localStorage.getItem('user_data')) || { n: "User" };
+    let rec, chunks = [], aud = null;
 
-    document.getElementById('u-name').innerText = "Ciao, " + profile.name;
-    if(idTag) { loadFeed(); goTo(1); }
+    document.getElementById('name-display').innerText = "Ciao, " + user.n;
+    if(id) { load(); move(1); }
 
-    async function loadFeed() {
-        const { data } = await sb.from('spots').select('*').eq('id_tag', idTag).order('created_at', {ascending: false});
-        const feed = document.getElementById('gallery-feed');
-        if(data) {
-            feed.innerHTML = data.map((t, i) => `
-                <div class="spot-card">
-                    <img src="${t.foto_url}" class="spot-img">
-                    <div class="info">
-                        <h3>@${t.nome_posto}</h3>
-                        ${t.audio_url ? `
-                            <button class="btn-audio" onclick="playAudio('${t.audio_url}', this, 'pb-${i}', 'pc-${i}')">ASCOLTA</button>
-                            <div class="p-cont" id="pc-${i}"><div class="p-bar" id="pb-${i}"></div></div>
-                        ` : ''}
-                    </div>
+    async function load() {
+        const { data } = await sb.from('spots').select('*').eq('id_tag', id).order('created_at', {ascending: false});
+        if(data) document.getElementById('feed').innerHTML = data.map(t => `
+            <div class="card">
+                <img src="${t.foto_url}" class="img">
+                <div class="info">
+                    <h3>@${t.nome_posto}</h3>
+                    ${t.audio_url ? `<button class="btn-play" onclick="play('${t.audio_url}', this)">ASCOLTA</button>` : ''}
                 </div>
-            `).join('');
-        }
+            </div>
+        `).join('');
     }
 
-    function playAudio(url, btn, barId, contId) {
-        const audio = new Audio(url);
-        const bar = document.getElementById(barId);
-        const cont = document.getElementById(contId);
-        cont.style.display = 'block';
-        
-        audio.ontimeupdate = () => { bar.style.width = (audio.currentTime / audio.duration * 100) + "%"; };
-        audio.play().then(() => btn.innerText = "IN RIPRODUZIONE").catch(() => btn.innerText = "TOCCA DI NUOVO");
-        audio.onended = () => { btn.innerText = "ASCOLTA"; cont.style.display = 'none'; };
+    function play(url, b) {
+        const a = new Audio(url);
+        b.innerText = "ATTENDI...";
+        a.play().then(() => b.innerText = "RIPRODUZIONE...").catch(() => b.innerText = "ERRORE (TOCCA)");
+        a.onended = () => b.innerText = "ASCOLTA";
     }
 
-    async function toggleRec() {
-        const btn = document.getElementById('rec-btn');
-        const ind = document.getElementById('rec-ind');
-        if(!mediaRecorder || mediaRecorder.state === 'inactive') {
-            const stream = await navigator.mediaDevices.getUserMedia({audio: true});
-            mediaRecorder = new MediaRecorder(stream);
+    async function doRec() {
+        const b = document.getElementById('rec');
+        if(!rec || rec.state === 'inactive') {
+            const s = await navigator.mediaDevices.getUserMedia({audio: true});
+            rec = new MediaRecorder(s);
             chunks = [];
-            mediaRecorder.ondataavailable = e => chunks.push(e.data);
-            mediaRecorder.onstop = () => {
+            rec.ondataavailable = e => chunks.push(e.data);
+            rec.onstop = () => {
                 const blob = new Blob(chunks, {type: 'audio/webm'});
-                const reader = new FileReader();
-                reader.readAsDataURL(blob);
-                reader.onloadend = () => { audioBase64 = reader.result; btn.innerText = "✅"; btn.style.background = "green"; };
-                ind.style.display = 'none';
-                stream.getTracks().forEach(t => t.stop());
+                const r = new FileReader();
+                r.readAsDataURL(blob);
+                r.onloadend = () => { aud = r.result; b.innerText = "OK ✅"; b.style.background = "green"; };
+                s.getTracks().forEach(t => t.stop());
             };
-            mediaRecorder.start();
-            btn.style.background = "red";
-            ind.style.display = 'block';
-        } else { mediaRecorder.stop(); }
+            rec.start();
+            b.innerText = "STOP ⏹"; b.style.background = "red";
+        } else { rec.stop(); }
     }
 
-    async function capture() {
-        const v = document.getElementById('video');
-        const c = document.getElementById('canvas');
-        c.width = 720; c.height = (v.videoHeight / v.videoWidth) * 720;
-        c.getContext('2d').drawImage(v, 0, 0, c.width, c.height);
-        const foto = c.toDataURL('image/jpeg', 0.5);
-        await sb.from('spots').insert([{ id_tag: idTag, nome_posto: profile.name, foto_url: foto, audio_url: audioBase64 }]);
+    async function snap() {
+        const v = document.getElementById('v'), canvas = document.getElementById('c');
+        canvas.width = 640; canvas.height = 480;
+        canvas.getContext('2d').drawImage(v, 0, 0, 640, 480);
+        const f = canvas.toDataURL('image/jpeg', 0.5);
+        await sb.from('spots').insert([{ id_tag: id, nome_posto: user.n, foto_url: f, audio_url: aud }]);
         location.reload();
     }
 
-    function openCam() { 
-        document.getElementById('cam-modal').style.display = 'block'; 
-        navigator.mediaDevices.getUserMedia({video: {facingMode:'environment'}}).then(s => document.getElementById('video').srcObject = s);
-    }
-    function closeCam() { document.getElementById('cam-modal').style.display = 'none'; }
-    function goTo(p) { document.getElementById('main-slider').style.transform = `translateX(-${p * 100}vw)`; }
-    function editName() { const n = prompt("Nome:"); if(n) { profile.name = n; localStorage.setItem('tracce_v4', JSON.stringify(profile)); location.reload(); }}
-    function genQR() { 
-        const n = document.getElementById('place-name').value; 
-        const url = window.location.origin + window.location.pathname + "?id=" + encodeURIComponent(n);
-        const qr = document.getElementById('qrcode');
-        qr.style.display = 'flex'; qr.innerHTML = "";
-        new QRCode(qr, {text: url, width: 150, height: 150});
+    function startCam() { document.getElementById('cam').style.display = 'block'; navigator.mediaDevices.getUserMedia({video:{facingMode:'environment'}}).then(s=>document.getElementById('v').srcObject=s); }
+    function stopCam() { document.getElementById('cam').style.display = 'none'; }
+    function move(p) { document.getElementById('slider').style.transform = `translateX(-${p*100}vw)`; }
+    function changeName() { const n = prompt("Nome:"); if(n) { user.n = n; localStorage.setItem('user_data', JSON.stringify(user)); location.reload(); }}
+    function makeQR() { 
+        const v = document.getElementById('tag-input').value; 
+        const qr = document.getElementById('qr-out');
+        qr.style.display = 'block'; qr.innerHTML = "";
+        new QRCode(qr, {text: window.location.origin + window.location.pathname + "?id=" + v, width: 150, height: 150});
     }
 </script>
 </body>
