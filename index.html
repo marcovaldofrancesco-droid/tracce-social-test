@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>TRACCE HUB</title>
+    <title>TRACCE AUDIO</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <style>
@@ -11,7 +11,7 @@
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; font-family: -apple-system, sans-serif; }
         body { margin: 0; background: var(--bg); color: #fff; height: 100dvh; overflow: hidden; }
 
-        /* --- HUB DI BENVENUTO --- */
+        /* --- HUB & LANDING --- */
         #hub-page { height: 100dvh; width: 100vw; overflow-y: auto; padding: 40px 25px 120px; display: none; background: radial-gradient(circle at top right, #1a1a1a, #000); }
         .hero h1 { font-size: 48px; letter-spacing: -3px; margin: 0; line-height: 0.9; }
         .step-box { background: var(--glass); padding: 15px; border-radius: 20px; margin-top: 20px; border: 1px solid rgba(255,255,255,0.05); }
@@ -20,60 +20,60 @@
         #main-slider { display: flex; width: 200vw; height: 100dvh; transition: transform 0.6s cubic-bezier(0.2, 1, 0.2, 1); }
         .page { width: 100vw; height: 100dvh; position: relative; overflow-y: auto; padding: 40px 25px 120px; }
         
-        /* FEED STYLE TIKTOK */
+        /* FEED STYLE */
         #gallery-feed { height: 100%; width: 100%; overflow-y: scroll; scroll-snap-type: y mandatory; position: absolute; top:0; left:0; }
         #gallery-feed::-webkit-scrollbar { display: none; }
         .spot-card { height: 100dvh; width: 100vw; scroll-snap-align: start; position: relative; background: #111; }
         .spot-img { width: 100%; height: 100%; object-fit: cover; }
-        .vignette { position: absolute; bottom: 0; width: 100%; height: 50%; background: linear-gradient(to top, rgba(0,0,0,0.9), transparent); pointer-events: none; }
+        .vignette { position: absolute; bottom: 0; width: 100%; height: 50%; background: linear-gradient(to top, rgba(0,0,0,0.95), transparent); pointer-events: none; }
         
-        /* Like Heart Pop */
+        /* Animazione Cuore */
         .heart-pop { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0); font-size: 100px; color: var(--accent); opacity: 0; pointer-events: none; z-index: 1000; }
         @keyframes pop { 0% { transform: translate(-50%, -50%) scale(0); opacity: 0; } 50% { opacity: 1; transform: translate(-50%, -50%) scale(1.2); } 100% { opacity: 0; transform: translate(-50%, -50%) scale(1); } }
 
-        /* --- UI ELEMENTS --- */
+        /* Audio Badge nel Feed */
+        .audio-badge { background: var(--accent); color: #fff; padding: 8px 15px; border-radius: 20px; font-size: 12px; font-weight: bold; display: flex; align-items: center; gap: 8px; margin-top: 10px; width: fit-content; animation: pulse 1.5s infinite; cursor: pointer; }
+        @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(255, 59, 48, 0.7); } 70% { box-shadow: 0 0 0 10px rgba(255, 59, 48, 0); } 100% { box-shadow: 0 0 0 0 rgba(255, 59, 48, 0); } }
+
+        /* --- UI CAMERA --- */
+        #camera-modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000; z-index: 5000; display: none; }
+        #video { width: 100%; height: 100%; object-fit: cover; }
+        .cam-ui { position: absolute; bottom: 40px; width: 100%; padding: 0 25px; display: flex; flex-direction: column; align-items: center; gap: 20px; }
+        
+        #rec-btn { background: var(--glass); border: 2px solid #fff; width: 60px; height: 60px; border-radius: 50%; font-size: 24px; color: #fff; display: flex; align-items: center; justify-content: center; }
+        #rec-btn.recording { background: var(--accent); border-color: var(--accent); animation: pulse 1s infinite; }
+
+        /* --- NAV DOCK --- */
         .nav-dock { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); width: 280px; height: 70px; background: var(--glass-heavy); backdrop-filter: blur(30px); border-radius: 35px; border: 1px solid rgba(255,255,255,0.1); display: flex; justify-content: space-around; align-items: center; z-index: 4000; }
         .nav-btn { background: none; border: none; font-size: 26px; opacity: 0.4; }
         .nav-btn.active { opacity: 1; }
         .add-btn { width: 55px; height: 55px; background: var(--accent); border-radius: 22px; display: flex; align-items: center; justify-content: center; font-size: 32px; font-weight: bold; }
-
-        #camera-modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000; z-index: 5000; display: none; }
-        #video { width: 100%; height: 100%; object-fit: cover; }
-
-        #nfc-toast { position: fixed; top: 40px; left: 50%; transform: translateX(-50%) translateY(-100px); background: var(--accent); padding: 12px 25px; border-radius: 20px; font-weight: 800; z-index: 9999; transition: 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
     </style>
 </head>
 <body>
 
-    <div id="nfc-toast">📍 VARCO: <span id="toast-name"></span></div>
-
     <div id="hub-page">
         <div class="hero">
-            <h1>Esplora le Tracce.</h1>
-            <p style="opacity:0.6;">Avvicinati a un Tag NFC o scansiona un QR per entrare in un Varco.</p>
+            <h1>Tracce Sonore.</h1>
+            <p style="opacity:0.6;">Ascolta e guarda i ricordi lasciati in questo luogo.</p>
         </div>
-        
         <div class="step-box">
-            <h3 style="margin:0 0 10px;">📖 Come Funziona</h3>
-            <p style="font-size:14px; opacity:0.8; margin:5px 0;">1. Trova un bollino <b>NFC</b> o un <b>QR</b> in giro per la città.</p>
-            <p style="font-size:14px; opacity:0.8; margin:5px 0;">2. Appoggia il telefono per vedere chi è passato di lì.</p>
-            <p style="font-size:14px; opacity:0.8; margin:5px 0;">3. Scatta una foto per lasciare la tua <b>Traccia</b>.</p>
+            <h3 style="margin:0;">🎧 Come Funziona</h3>
+            <p style="font-size:14px; opacity:0.8;">Avvicina il telefono a un tag NFC per sentire i suoni del passato e lasciare la tua traccia (Foto + Audio).</p>
         </div>
-
-        <button onclick="window.location.href='?id=Generale'" style="width:100%; background:#fff; color:#000; border:none; padding:20px; border-radius:20px; margin-top:30px; font-weight:800;">ENTRA NELL'HUB GLOBALE</button>
+        <button onclick="window.location.href='?id=Generale'" style="width:100%; background:#fff; color:#000; border:none; padding:20px; border-radius:20px; margin-top:30px; font-weight:800;">HUB GLOBALE</button>
     </div>
 
     <div id="main-slider">
         <div class="page" id="profile-page">
             <h1 style="margin:0;">Profilo</h1>
             <div id="u-name" onclick="editName()" style="font-size:24px; color:var(--accent); font-weight:800;">Anonimo</div>
-            <p style="font-size:12px; opacity:0.5; margin-bottom:30px;">Tocca il nome per cambiarlo</p>
+            <p style="font-size:12px; opacity:0.5; margin-bottom:30px;">Tocca per cambiare nome</p>
 
             <div class="step-box">
-                <h3 style="margin:0;">🛠️ Strumenti Creatore</h3>
-                <p style="font-size:13px; opacity:0.6;">Crea un nuovo punto di ritrovo.</p>
-                <input type="text" id="new-place-name" style="width:100%; background:rgba(0,0,0,0.5); border:1px solid #333; padding:15px; border-radius:15px; color:#fff; margin:15px 0;" placeholder="Nome luogo (es: Skate-Park)">
-                <button onclick="generateNewPlace()" style="width:100%; background:#fff; color:#000; border:none; padding:15px; border-radius:15px; font-weight:bold;">GENERA QR CODE</button>
+                <h3 style="margin:0;">🛠️ Crea Varco</h3>
+                <input type="text" id="new-place-name" style="width:100%; background:rgba(0,0,0,0.5); border:1px solid #333; padding:15px; border-radius:15px; color:#fff; margin:15px 0;" placeholder="Nome luogo...">
+                <button onclick="generateNewPlace()" style="width:100%; background:#fff; color:#000; border:none; padding:15px; border-radius:15px; font-weight:bold;">GENERA QR</button>
                 <div id="qrcode" style="margin-top:20px; display:none; justify-content:center; background:#fff; padding:15px; border-radius:15px;"></div>
             </div>
         </div>
@@ -85,13 +85,16 @@
 
     <div id="camera-modal">
         <video id="video" autoplay playsinline muted></video>
-        <div style="position:absolute; bottom:50px; width:100%; display:flex; flex-direction:column; align-items:center; gap:20px; padding:0 30px;">
-            <input type="text" id="desc-input" placeholder="Cosa succede qui?" style="width:100%; background:rgba(0,0,0,0.8); border:1px solid #444; padding:15px; border-radius:20px; color:#fff;">
-            <div style="display:flex; align-items:center; gap:40px;">
+        <div class="cam-ui">
+            <input type="text" id="desc-input" placeholder="Scrivi qualcosa..." style="width:100%; background:rgba(0,0,0,0.7); border:1px solid #444; padding:15px; border-radius:15px; color:#fff;">
+            
+            <div style="display:flex; align-items:center; gap:30px;">
                 <button onclick="switchCamera()" style="background:none; border:none; font-size:24px; color:#fff;">🔄</button>
-                <div onclick="capture()" style="width:80px; height:80px; border-radius:50%; border:4px solid #fff; display:flex; align-items:center; justify-content:center;"><div style="width:65px; height:65px; background:#fff; border-radius:50%;"></div></div>
+                <div onclick="capture()" style="width:75px; height:75px; border-radius:50%; border:4px solid #fff; display:flex; align-items:center; justify-content:center;"><div style="width:60px; height:60px; background:#fff; border-radius:50%;"></div></div>
+                <button id="rec-btn" onclick="toggleRecording()">🎤</button>
                 <button onclick="closeCam()" style="background:none; border:none; font-size:24px; color:#fff;">✕</button>
             </div>
+            <div id="rec-timer" style="font-size:12px; color:var(--accent); font-weight:bold; visibility:hidden;">🔴 REGISTRAZIONE IN CORSO</div>
         </div>
     </div>
 
@@ -111,6 +114,7 @@
         const idTag = new URLSearchParams(window.location.search).get('id');
         let profile = JSON.parse(localStorage.getItem('tracce_v4')) || { name: "Esploratore" };
         let currentFacing = 'environment';
+        let mediaRecorder, audioChunks = [], audioBase64 = null;
 
         if (!idTag) {
             document.getElementById('hub-page').style.display = 'block';
@@ -118,37 +122,77 @@
         } else {
             document.getElementById('main-slider').style.display = 'flex';
             document.getElementById('u-name').innerText = profile.name;
-            const t = document.getElementById('nfc-toast');
-            document.getElementById('toast-name').innerText = idTag.toUpperCase();
-            setTimeout(() => t.style.transform = "translateX(-50%) translateY(0)", 500);
-            setTimeout(() => t.style.transform = "translateX(-50%) translateY(-100px)", 3500);
             load();
-        }
-
-        function goTo(p) {
-            document.getElementById('main-slider').style.transform = `translateX(-${p * 100}vw)`;
-            document.querySelectorAll('.nav-btn').forEach((b, i) => b.classList.toggle('active', i === p));
         }
 
         async function load() {
             const { data } = await supabaseClient.from('spots').select('*').eq('id_tag', idTag).order('created_at', { ascending: false });
             const feed = document.getElementById('gallery-feed');
-            if (data && data.length > 0) {
+            if (data) {
                 feed.innerHTML = data.map(t => `
                     <div class="spot-card" ondblclick="like('${t.id}')">
                         <img src="${t.foto_url}" class="spot-img">
                         <div class="vignette"></div>
                         <div id="heart-${t.id}" class="heart-pop">❤️</div>
-                        <div style="position:absolute; bottom:120px; left:25px;">
+                        <div style="position:absolute; bottom:120px; left:25px; right:25px;">
                             <h3 style="margin:0;">@${t.nome_posto}</h3>
-                            <p style="margin:5px 0 0; opacity:0.8; font-size:14px;">${t.descrizione || ''}</p>
-                            <span style="font-size:10px; color:var(--accent);">❤️ <span id="l-${t.id}">${t.likes || 0}</span> likes</span>
+                            <p style="margin:5px 0; opacity:0.8; font-size:14px;">${t.descrizione || ''}</p>
+                            ${t.audio_url ? `<div class="audio-badge" onclick="playAudio('${t.audio_url}')">🔊 ASCOLTA TRACCIA</div>` : ''}
+                            <div style="font-size:10px; color:var(--accent); margin-top:10px;">❤️ <span id="l-${t.id}">${t.likes || 0}</span> LIKES</div>
                         </div>
                     </div>
                 `).join('');
-            } else {
-                feed.innerHTML = `<div style="padding:100px 40px; text-align:center;"><h2>📍 Varco Vuoto</h2><p>Non ci sono tracce qui. Scatta la prima foto per inaugurare il luogo!</p></div>`;
             }
+        }
+
+        async function toggleRecording() {
+            const btn = document.getElementById('rec-btn');
+            const timer = document.getElementById('rec-timer');
+            if (!mediaRecorder || mediaRecorder.state === "inactive") {
+                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                mediaRecorder = new MediaRecorder(stream);
+                audioChunks = [];
+                mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
+                mediaRecorder.onstop = () => {
+                    const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+                    const reader = new FileReader();
+                    reader.readAsDataURL(audioBlob);
+                    reader.onloadend = () => audioBase64 = reader.result;
+                    btn.classList.remove('recording');
+                    timer.style.visibility = 'hidden';
+                };
+                mediaRecorder.start();
+                btn.classList.add('recording');
+                timer.style.visibility = 'visible';
+            } else {
+                mediaRecorder.stop();
+            }
+        }
+
+        function playAudio(url) {
+            const audio = new Audio(url);
+            audio.play();
+        }
+
+        async function capture() {
+            const v = document.getElementById('video');
+            const c = document.getElementById('canvas');
+            c.width = v.videoWidth; c.height = v.videoHeight;
+            const ctx = c.getContext('2d');
+            if(currentFacing==='user') { ctx.translate(c.width,0); ctx.scale(-1,1); }
+            ctx.drawImage(v,0,0);
+            const img = c.toDataURL('image/jpeg', 0.6);
+            
+            await supabaseClient.from('spots').insert([{ 
+                id_tag: idTag, 
+                nome_posto: profile.name, 
+                descrizione: document.getElementById('desc-input').value, 
+                foto_url: img, 
+                audio_url: audioBase64,
+                likes: 0 
+            }]);
+            audioBase64 = null; // Reset audio
+            closeCam(); load();
         }
 
         async function like(id) {
@@ -160,10 +204,9 @@
             await supabaseClient.rpc('increment_likes', { row_id: id });
         }
 
-        async function openCam() {
+        function openCam() {
             document.getElementById('camera-modal').style.display = 'block';
-            const s = await navigator.mediaDevices.getUserMedia({video:{facingMode:currentFacing}});
-            document.getElementById('video').srcObject = s;
+            navigator.mediaDevices.getUserMedia({video:{facingMode:currentFacing}}).then(s => document.getElementById('video').srcObject = s);
         }
 
         function closeCam() {
@@ -171,17 +214,17 @@
             document.getElementById('video').srcObject.getTracks().forEach(t => t.stop());
         }
 
-        async function capture() {
-            const v = document.getElementById('video');
-            const c = document.getElementById('canvas');
-            c.width = v.videoWidth; c.height = v.videoHeight;
-            const ctx = c.getContext('2d');
-            if(currentFacing==='user') { ctx.translate(c.width,0); ctx.scale(-1,1); }
-            ctx.drawImage(v,0,0);
-            const img = c.toDataURL('image/jpeg', 0.6);
-            await supabaseClient.from('spots').insert([{ id_tag: idTag, nome_posto: profile.name, descrizione: document.getElementById('desc-input').value, foto_url: img, likes: 0 }]);
-            closeCam(); load();
+        function goTo(p) {
+            document.getElementById('main-slider').style.transform = `translateX(-${p * 100}vw)`;
+            document.querySelectorAll('.nav-btn').forEach((b, i) => b.classList.toggle('active', i === p));
         }
+
+        function editName() {
+            const n = prompt("Tuo nome:");
+            if(n) { profile.name = n; localStorage.setItem('tracce_v4', JSON.stringify(profile)); location.reload(); }
+        }
+
+        function switchCamera() { currentFacing = currentFacing==='environment'?'user':'environment'; openCam(); }
 
         function generateNewPlace() {
             const name = document.getElementById('new-place-name').value.trim().replace(/\s+/g, '-');
@@ -192,13 +235,6 @@
             qrDiv.innerHTML = "";
             new QRCode(qrDiv, { text: url, width: 150, height: 150 });
         }
-
-        function editName() {
-            const n = prompt("Tuo nome:");
-            if(n) { profile.name = n; localStorage.setItem('tracce_v4', JSON.stringify(profile)); location.reload(); }
-        }
-
-        function switchCamera() { currentFacing = currentFacing==='environment'?'user':'environment'; openCam(); }
 
         goTo(1);
     </script>
