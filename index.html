@@ -24,7 +24,7 @@
         .spot-card { 
             height: 100dvh; scroll-snap-align: start; position: relative; background: #000; 
             display: flex; flex-direction: column; align-items: center; justify-content: center;
-            padding-bottom: 40px; 
+            padding-bottom: 30px; 
         }
         
         .spot-img-container {
@@ -43,11 +43,10 @@
         .info { width: 82%; margin-top: 15px; position: relative; }
         .date { font-size: 9px; color: rgba(255,255,255,0.3); font-weight: 700; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 4px; }
         
-        .name-row { display: flex; align-items: center; gap: 10px; margin-bottom: 4px; }
+        .name-row { display: flex; align-items: center; gap: 10px; }
         .place-title { margin: 0; font-size: 22px; font-weight: 900; letter-spacing: -0.5px; }
         
-        /* Descrizione stile minimal */
-        .description { font-size: 14px; color: rgba(255,255,255,0.7); line-height: 1.4; margin-top: 5px; font-weight: 400; }
+        .description-text { font-size: 14px; color: rgba(255,255,255,0.6); line-height: 1.4; margin-top: 6px; font-weight: 400; }
 
         .mini-play {
             width: 30px; height: 30px; background: rgba(255,255,255,0.1); 
@@ -57,24 +56,32 @@
         .mini-play svg { fill: white; width: 10px; height: 10px; margin-left: 2px; }
 
         .p-cont { width: 100%; height: 2px; background: rgba(255,255,255,0.05); border-radius: 1px; margin-top: 10px; overflow: hidden; }
-        .p-bar { height: 100%; background: #fff; width: 0%; transition: width 0.1s linear; }
+        .p-bar { height: 100%; background: #fff; width: 0%; }
 
-        /* NAVIGAZIONE SUPER SCHIACCIATA */
+        /* NAVIGAZIONE EXTRA SLIM */
         .nav { 
-            position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); 
+            position: fixed; bottom: 15px; left: 50%; transform: translateX(-50%); 
             display: flex; gap: 40px; z-index: 1000; 
-            background: rgba(15,15,15,0.98); 
-            padding: 6px 25px; /* Ancora più sottile */
+            background: rgba(10,10,10,0.98); 
+            padding: 5px 22px; 
             border-radius: 40px; backdrop-filter: blur(20px); 
-            border: 1px solid rgba(255,255,255,0.08); align-items: center;
+            border: 1px solid rgba(255,255,255,0.06); align-items: center;
         }
-        .nav-btn { background: none; border: none; color: #fff; opacity: 0.3; display: flex; align-items: center; justify-content: center; width: 24px; height: 24px; }
+        .nav-btn { background: none; border: none; color: #fff; opacity: 0.3; display: flex; align-items: center; justify-content: center; width: 22px; height: 22px; }
         .nav-btn.active { opacity: 1; }
-        .add { width: 48px; height: 48px; background: var(--accent); border-radius: 50%; border: none; display: flex; align-items: center; justify-content: center; box-shadow: 0 5px 15px rgba(255,59,48,0.3); }
-        .svg-icon { width: 18px; height: 18px; fill: currentColor; }
+        .add { width: 44px; height: 44px; background: var(--accent); border-radius: 50%; border: none; display: flex; align-items: center; justify-content: center; box-shadow: 0 5px 15px rgba(255,59,48,0.2); }
+        .svg-icon { width: 16px; height: 16px; fill: currentColor; }
 
-        /* Stile Input Descrizione nel profilo */
-        #desc-input { width:100%; padding:15px; border-radius:12px; border:none; background:#1c1c1e; color:#fff; font-size:14px; margin-bottom:12px; resize: none; }
+        /* CAMERA MODAL CON INPUT DESCRIZIONE */
+        #cam-modal { position:fixed; inset:0; background:#000; z-index:2000; display:none; flex-direction: column; }
+        #video { width:100%; height:100%; object-fit:cover; }
+        .cam-ui { position:absolute; bottom:40px; width:100%; display:flex; flex-direction:column; align-items:center; gap:20px; }
+        #post-desc { 
+            width: 80%; background: rgba(0,0,0,0.6); border: 1px solid rgba(255,255,255,0.2); 
+            padding: 12px 18px; border-radius: 15px; color: #fff; font-size: 14px; 
+            backdrop-filter: blur(10px); outline: none; text-align: center;
+        }
+        .cam-btns { width: 100%; display: flex; justify-content: space-around; align-items: center; }
     </style>
 </head>
 <body>
@@ -83,8 +90,7 @@
     <div class="page" id="profile-page">
         <h1 id="u-name" onclick="editName()" style="font-size: 38px; font-weight: 900; margin:0; letter-spacing: -1.5px;">Ciao!</h1>
         <div style="background: #111; padding: 20px; border-radius: 25px; margin-top: 30px; border: 1px solid #222;">
-            <input type="text" id="place-name" placeholder="Nome di questo posto..." style="width:100%; padding:15px; border-radius:12px; border:none; background:#1c1c1e; color:#fff; font-size:15px; margin-bottom:10px;">
-            <textarea id="desc-input" placeholder="Aggiungi una descrizione..." rows="2"></textarea>
+            <input type="text" id="place-name" placeholder="Nome di questo posto..." style="width:100%; padding:15px; border-radius:12px; border:none; background:#1c1c1e; color:#fff; font-size:15px; margin-bottom:12px;">
             <button onclick="genQR()" style="width:100%; padding:15px; border-radius:12px; background:#fff; font-weight:900; color:#000; border:none;">GENERA QR</button>
             <div id="qrcode" style="margin-top:20px; display:none; justify-content:center; background:#fff; padding:15px; border-radius:15px;"></div>
         </div>
@@ -99,19 +105,22 @@
         <svg class="svg-icon" viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
     </button>
     <button class="add" onclick="openCam()">
-        <svg viewBox="0 0 24 24" style="width:22px; height:22px; stroke:white; stroke-width:3; fill:none;"><path d="M12 5v14M5 12h14"/></svg>
+        <svg viewBox="0 0 24 24" style="width:20px; height:20px; stroke:white; stroke-width:3; fill:none;"><path d="M12 5v14M5 12h14"/></svg>
     </button>
     <button onclick="goTo(1)" class="nav-btn" id="btn-home">
         <svg class="svg-icon" viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
     </button>
 </div>
 
-<div id="cam-modal" style="position:fixed; inset:0; background:#000; z-index:2000; display:none;">
-    <video id="video" autoplay playsinline muted style="width:100%; height:100%; object-fit:cover;"></video>
-    <div style="position:absolute; bottom:50px; width:100%; display:flex; justify-content:space-around; align-items:center;">
-        <button onclick="closeCam()" style="color:#fff; background:none; border:none; font-size:30px;">✕</button>
-        <button onclick="capture()" id="snap-btn" style="width:70px; height:70px; border-radius:50%; border:5px solid #fff; background:none;"></button>
-        <button id="rec-btn" onclick="toggleRec()" style="width:45px; height:45px; border-radius:50%; background:rgba(255,255,255,0.2); color:#fff; border:none; font-size:18px;">🎤</button>
+<div id="cam-modal">
+    <video id="video" autoplay playsinline muted></video>
+    <div class="cam-ui">
+        <input type="text" id="post-desc" placeholder="Scrivi una descrizione per questa foto...">
+        <div class="cam-btns">
+            <button onclick="closeCam()" style="color:#fff; background:none; border:none; font-size:30px;">✕</button>
+            <button onclick="capture()" id="snap-btn" style="width:70px; height:70px; border-radius:50%; border:5px solid #fff; background:none;"></button>
+            <button id="rec-btn" onclick="toggleRec()" style="width:45px; height:45px; border-radius:50%; background:rgba(255,255,255,0.2); color:#fff; border:none; font-size:18px;">🎤</button>
+        </div>
     </div>
 </div>
 
@@ -142,16 +151,14 @@
                 const date = new Date(t.created_at).toLocaleString('it-IT', {day:'2-digit', month:'short', hour:'2-digit', minute:'2-digit'});
                 return `
                 <div class="spot-card">
-                    <div class="spot-img-container">
-                        <img src="${t.foto_url}" class="spot-img">
-                    </div>
+                    <div class="spot-img-container"><img src="${t.foto_url}" class="spot-img"></div>
                     <div class="info">
                         <div class="date">${date}</div>
                         <div class="name-row">
                             <h3 class="place-title">@${t.nome_posto}</h3>
                             ${t.audio_url ? `<div class="mini-play" onclick="playAudio('${t.audio_url}', 'b-${i}', 'c-${i}')"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></div>` : ''}
                         </div>
-                        ${t.descrizione ? `<div class="description">${t.descrizione}</div>` : ''}
+                        ${t.descrizione ? `<div class="description-text">${t.descrizione}</div>` : ''}
                         <div class="p-cont" id="c-${i}" style="visibility:hidden"><div class="p-bar" id="b-${i}"></div></div>
                     </div>
                 </div>`
@@ -195,7 +202,9 @@
     async function capture() {
         const v = document.getElementById('video');
         const c = document.getElementById('canvas');
-        const desc = document.getElementById('desc-input').value;
+        const desc = document.getElementById('post-desc').value;
+        const btn = document.getElementById('snap-btn');
+        btn.style.borderColor = "#ff3b30";
         c.width = 1080; c.height = 1920;
         c.getContext('2d').drawImage(v, 0, 0, 1080, 1920);
         const foto = c.toDataURL('image/jpeg', 0.7);
@@ -209,7 +218,7 @@
         location.reload();
     }
 
-    function openCam() { document.getElementById('cam-modal').style.display = 'block'; navigator.mediaDevices.getUserMedia({video: {facingMode:'environment'}}).then(s => document.getElementById('video').srcObject = s); }
+    function openCam() { document.getElementById('cam-modal').style.display = 'flex'; navigator.mediaDevices.getUserMedia({video: {facingMode:'environment'}}).then(s => document.getElementById('video').srcObject = s); }
     function closeCam() { const v = document.getElementById('video'); if(v.srcObject) v.srcObject.getTracks().forEach(t => t.stop()); document.getElementById('cam-modal').style.display = 'none'; }
     function goTo(p) { document.getElementById('slider').style.transform = `translateX(-${p * 100}vw)`; document.getElementById('btn-prof').classList.toggle('active', p===0); document.getElementById('btn-home').classList.toggle('active', p===1); }
     function editName() { const n = prompt("Tuo nome:"); if(n) { profile.name = n; localStorage.setItem('tracce_v4', JSON.stringify(profile)); location.reload(); }}
