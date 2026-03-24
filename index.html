@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>TRACCE CLASSIC</title>
+    <title>TRACCE AUDIO FIX</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <style>
@@ -13,11 +13,11 @@
         #main-slider { display: flex; width: 200vw; height: 100dvh; transition: 0.5s; }
         .page { width: 100vw; height: 100dvh; position: relative; overflow-y: auto; padding-bottom: 120px; }
         #gallery-feed { height: 100%; width: 100%; overflow-y: scroll; scroll-snap-type: y mandatory; }
-        .spot-card { height: 100dvh; width: 100vw; scroll-snap-align: start; position: relative; background: #111; border-bottom: 1px solid #222; }
+        .spot-card { height: 100dvh; width: 100vw; scroll-snap-align: start; position: relative; background: #111; }
         .spot-img { width: 100%; height: 100%; object-fit: cover; }
-        .info { position: absolute; bottom: 130px; left: 20px; right: 20px; z-index: 10; text-shadow: 0 2px 10px rgba(0,0,0,0.8); }
-        .btn-audio { background: var(--accent); color: #fff; border: none; padding: 15px 25px; border-radius: 30px; font-weight: bold; margin-top: 10px; cursor: pointer; }
-        .nav { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); display: flex; gap: 20px; z-index: 1000; background: rgba(0,0,0,0.85); padding: 12px 30px; border-radius: 50px; border: 1px solid #333; backdrop-filter: blur(10px); }
+        .info { position: absolute; bottom: 130px; left: 20px; right: 20px; z-index: 10; }
+        .btn-audio { background: var(--accent); color: #fff; border: none; padding: 15px 25px; border-radius: 30px; font-weight: bold; margin-top: 10px; box-shadow: 0 4px 15px rgba(255,59,48,0.3); }
+        .nav { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); display: flex; gap: 20px; z-index: 1000; background: rgba(0,0,0,0.8); padding: 12px 30px; border-radius: 50px; border: 1px solid #333; backdrop-filter: blur(10px); }
         .add { width: 60px; height: 60px; background: var(--accent); border-radius: 50%; border: none; color: #fff; font-size: 30px; font-weight: bold; }
         #cam-modal { position: fixed; inset: 0; background: #000; z-index: 2000; display: none; }
         #video { width: 100%; height: 100%; object-fit: cover; }
@@ -27,12 +27,11 @@
 </head>
 <body>
 
-<div id="loader">ELABORAZIONE...</div>
+<div id="loader">SALVATAGGIO...</div>
 
 <div id="main-slider">
     <div class="page" style="padding: 40px 25px;">
-        <h1 id="u-name" onclick="editName()" style="font-size: 32px; margin-bottom: 5px;">Esploratore</h1>
-        <p style="opacity: 0.5; margin-top: 0;">Tocca il nome per modificarlo</p>
+        <h1 id="u-name" onclick="editName()">Esploratore</h1>
         <div style="margin-top:40px; background:#111; padding:25px; border-radius:25px; border: 1px solid #222;">
             <input type="text" id="place-name" placeholder="Nome nuovo posto..." style="width:100%; padding:15px; border-radius:10px; border:1px solid #333; background:#000; color:#fff;">
             <button onclick="genQR()" style="width:100%; padding:15px; font-weight:bold; background:#fff; color:#000; border:none; border-radius:10px; margin-top:10px;">CREA QR CODE</button>
@@ -47,14 +46,14 @@
     <div class="cam-ui">
         <button onclick="closeCam()" style="color:#fff; background:none; border:none; font-size:30px;">✕</button>
         <button onclick="capture()" style="width:75px; height:75px; border-radius:50%; border:5px solid #fff; background:none;"></button>
-        <button id="rec-btn" onclick="toggleRec()" style="color:#fff; background:rgba(255,255,255,0.2); border:none; width:50px; height:50px; border-radius:50%; font-size:20px;">🎤</button>
+        <button id="rec-btn" onclick="toggleRec()" style="color:#fff; background:rgba(255,255,255,0.2); border:none; width:55px; height:55px; border-radius:50%; font-size:22px;">🎤</button>
     </div>
 </div>
 
 <div class="nav">
-    <button onclick="goTo(0)" style="background:none; border:none; color:#fff; font-size:25px; opacity:0.6;">👤</button>
+    <button onclick="goTo(0)" style="background:none; border:none; color:#fff; font-size:25px;">👤</button>
     <button class="add" onclick="openCam()">+</button>
-    <button onclick="goTo(1)" style="background:none; border:none; color:#fff; font-size:25px; opacity:0.6;">🏠</button>
+    <button onclick="goTo(1)" style="background:none; border:none; color:#fff; font-size:25px;">🏠</button>
 </div>
 
 <canvas id="canvas" style="display:none;"></canvas>
@@ -71,7 +70,7 @@
     if(idTag) { loadFeed(); goTo(1); }
 
     async function loadFeed() {
-        const { data, error } = await sb.from('spots').select('*').eq('id_tag', idTag).order('created_at', {ascending: false});
+        const { data } = await sb.from('spots').select('*').eq('id_tag', idTag).order('created_at', {ascending: false});
         const feed = document.getElementById('gallery-feed');
         if(data && data.length > 0) {
             feed.innerHTML = data.map(t => `
@@ -79,59 +78,59 @@
                     <img src="${t.foto_url}" class="spot-img">
                     <div class="info">
                         <h3 style="margin:0; font-size:24px;">@${t.nome_posto}</h3>
-                        ${t.audio_url ? `<button class="btn-audio" onclick="new Audio('${t.audio_url}').play()">🔊 ASCOLTA</button>` : ''}
+                        ${t.audio_url ? `<button class="btn-audio" onclick="playAudio('${t.audio_url}')">🔊 ASCOLTA</button>` : ''}
                     </div>
                 </div>
             `).join('');
-        } else { feed.innerHTML = "<p style='padding:100px 20px; text-align:center; opacity:0.5;'>Nessun contenuto. Tocca +</p>"; }
+        }
+    }
+
+    // Fix riproduzione iOS/Android
+    function playAudio(base64) {
+        const audio = new Audio(base64);
+        audio.play().catch(() => alert("Premi di nuovo il tasto Play o sblocca il silenzioso!"));
     }
 
     async function toggleRec() {
         const btn = document.getElementById('rec-btn');
         if(!mediaRecorder || mediaRecorder.state === 'inactive') {
-            const s = await navigator.mediaDevices.getUserMedia({audio: true});
-            mediaRecorder = new MediaRecorder(s);
-            chunks = [];
-            mediaRecorder.ondataavailable = e => chunks.push(e.data);
-            mediaRecorder.onstop = async () => {
-                const blob = new Blob(chunks, {type: 'audio/webm'});
-                const reader = new FileReader();
-                reader.readAsDataURL(blob);
-                reader.onloadend = () => { audioBase64 = reader.result; btn.innerText = "✅"; btn.style.background = "#4cd964"; };
-            };
-            mediaRecorder.start();
-            btn.innerText = "🔴"; btn.style.background = "red";
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({audio: true});
+                // Cerchiamo il formato più compatibile (mp4 o webm)
+                const options = { mimeType: MediaRecorder.isTypeSupported('audio/mp4') ? 'audio/mp4' : 'audio/webm' };
+                mediaRecorder = new MediaRecorder(stream, options);
+                chunks = [];
+                mediaRecorder.ondataavailable = e => chunks.push(e.data);
+                mediaRecorder.onstop = () => {
+                    const blob = new Blob(chunks, { type: options.mimeType });
+                    const reader = new FileReader();
+                    reader.readAsDataURL(blob);
+                    reader.onloadend = () => { audioBase64 = reader.result; btn.innerText = "✅"; btn.style.background = "#4cd964"; };
+                };
+                mediaRecorder.start();
+                btn.innerText = "🔴"; btn.style.background = "#ff3b30";
+            } catch(e) { alert("Attiva il microfono nelle impostazioni del browser!"); }
         } else { mediaRecorder.stop(); }
     }
 
     async function capture() {
+        if(!audioBase64) { if(!confirm("Vuoi salvare senza audio?")) return; }
         document.getElementById('loader').style.display = 'flex';
         const v = document.getElementById('video');
         const c = document.getElementById('canvas');
-        c.width = 600; // Ridotto per non appesantire il DB
-        c.height = (v.videoHeight / v.videoWidth) * 600;
+        c.width = 600; c.height = (v.videoHeight / v.videoWidth) * 600;
         c.getContext('2d').drawImage(v, 0, 0, c.width, c.height);
-        const fotoBase64 = c.toDataURL('image/jpeg', 0.6); // Compressione al 60%
+        const fotoBase64 = c.toDataURL('image/jpeg', 0.6);
 
-        try {
-            await sb.from('spots').insert([{ 
-                id_tag: idTag, 
-                nome_posto: profile.name, 
-                foto_url: fotoBase64, 
-                audio_url: audioBase64 
-            }]);
-            location.reload();
-        } catch(e) { 
-            alert("Errore database: " + e.message); 
-            document.getElementById('loader').style.display = 'none';
-        }
+        await sb.from('spots').insert([{ id_tag: idTag, nome_posto: profile.name, foto_url: fotoBase64, audio_url: audioBase64 }]);
+        location.reload();
     }
 
     function openCam() { 
         document.getElementById('cam-modal').style.display = 'block'; 
         navigator.mediaDevices.getUserMedia({video: {facingMode:'environment'}}).then(s => document.getElementById('video').srcObject = s);
-        // Sblocco audio per iOS
-        new Audio("data:audio/wav;base64,UklGRigAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQAAAAA=").play();
+        // Sblocco audio "preventivo" per iOS
+        const a = new Audio(); a.play().catch(()=>{});
     }
     function closeCam() { document.getElementById('cam-modal').style.display = 'none'; const s = document.getElementById('video').srcObject; if(s) s.getTracks().forEach(t => t.stop()); }
     function goTo(p) { document.getElementById('main-slider').style.transform = `translateX(-${p * 100}vw)`; }
