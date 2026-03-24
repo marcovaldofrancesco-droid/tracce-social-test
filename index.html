@@ -14,7 +14,7 @@
         #slider { display: flex; width: 200vw; height: 100dvh; transition: 0.5s cubic-bezier(0.2, 1, 0.2, 1); }
         .page { width: 100vw; height: 100dvh; position: relative; overflow-y: auto; padding-bottom: 100px; }
 
-        /* HEADER */
+        /* HEADER POSIZIONE */
         .location-header {
             position: absolute; top: 45px; left: 0; width: 100%; text-align: center; z-index: 20;
             font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 3px; color: rgba(255,255,255,0.5);
@@ -25,10 +25,10 @@
         .spot-card { 
             height: 100dvh; scroll-snap-align: start; position: relative; background: #000; 
             display: flex; flex-direction: column; align-items: center; justify-content: center;
-            padding-bottom: 80px; /* Spazio per la barra schiacciata */
+            padding-bottom: 60px; 
         }
         
-        /* FORMATO 9:16 - ANCORA PIÙ RETTAGOLARE */
+        /* FOTO PULITA 9:16 */
         .spot-img-container {
             width: 82%; 
             aspect-ratio: 9 / 16; 
@@ -41,41 +41,35 @@
         }
         
         .spot-img { width: 100%; height: 100%; object-fit: cover; display: block; }
+
+        /* INFO E PLAY VICINO AL NOME */
+        .info { width: 82%; margin-top: 18px; position: relative; }
+        .date { font-size: 9px; color: rgba(255,255,255,0.3); font-weight: 700; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 4px; }
         
-        .overlay { position: absolute; inset: 0; background: linear-gradient(to bottom, transparent 70%, rgba(0,0,0,0.5)); pointer-events: none; }
+        .name-row { display: flex; align-items: center; gap: 12px; }
+        .place-title { margin: 0; font-size: 24px; font-weight: 900; letter-spacing: -1px; }
         
-        .play-overlay { 
-            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
-            width: 80px; height: 80px; background: rgba(255,255,255,0.1); 
-            backdrop-filter: blur(15px); border-radius: 50%; 
-            display: flex; align-items: center; justify-content: center;
-            border: 1px solid rgba(255,255,255,0.1); z-index: 5;
+        /* Piccolo tasto play accanto al nome */
+        .mini-play {
+            width: 32px; height: 32px; background: rgba(255,255,255,0.1); 
+            border-radius: 50%; display: flex; align-items: center; justify-content: center;
+            border: 1px solid rgba(255,255,255,0.1); cursor: pointer;
         }
-        .play-icon { width: 0; height: 0; border-top: 12px solid transparent; border-bottom: 12px solid transparent; border-left: 20px solid white; margin-left: 5px; }
+        .mini-play svg { fill: white; width: 12px; height: 12px; margin-left: 2px; }
 
-        /* INFO POSIZIONATE PER NON COPRIRE IL NOME */
-        .info { width: 82%; margin-top: 15px; }
-        .date { font-size: 9px; color: rgba(255,255,255,0.3); font-weight: 700; text-transform: uppercase; letter-spacing: 2px; }
-        .place-title { margin: 2px 0; font-size: 24px; font-weight: 900; letter-spacing: -1px; }
-        
-        .p-cont { width: 100%; height: 2px; background: rgba(255,255,255,0.1); border-radius: 1px; margin-top: 10px; overflow: hidden; }
-        .p-bar { height: 100%; background: #fff; width: 0%; }
+        .p-cont { width: 100%; height: 2px; background: rgba(255,255,255,0.05); border-radius: 1px; margin-top: 12px; overflow: hidden; }
+        .p-bar { height: 100%; background: #fff; width: 0%; transition: width 0.1s linear; }
 
-        /* NAVIGAZIONE SCHIACCIATA */
+        /* NAVIGAZIONE */
         .nav { 
             position: fixed; bottom: 25px; left: 50%; transform: translateX(-50%); 
             display: flex; gap: 35px; z-index: 1000; 
-            background: rgba(15,15,15,0.95); 
-            padding: 8px 30px; /* Ridotto padding verticale */
-            border-radius: 40px; 
-            backdrop-filter: blur(20px); 
-            border: 1px solid rgba(255,255,255,0.1); 
-            align-items: center;
+            background: rgba(15,15,15,0.95); padding: 8px 30px; 
+            border-radius: 40px; backdrop-filter: blur(20px); 
+            border: 1px solid rgba(255,255,255,0.1); align-items: center;
         }
         .nav-btn { background: none; border: none; color: #fff; opacity: 0.3; display: flex; align-items: center; justify-content: center; width: 28px; height: 28px; }
         .nav-btn.active { opacity: 1; }
-        
-        /* PULSANTE + PIÙ PICCOLO */
         .add { width: 52px; height: 52px; background: var(--accent); border-radius: 50%; border: none; display: flex; align-items: center; justify-content: center; box-shadow: 0 8px 20px rgba(255,59,48,0.3); }
         .svg-icon { width: 20px; height: 20px; fill: currentColor; }
     </style>
@@ -146,12 +140,17 @@
                 <div class="spot-card">
                     <div class="spot-img-container">
                         <img src="${t.foto_url}" class="spot-img">
-                        <div class="overlay"></div>
-                        ${t.audio_url ? `<div class="play-overlay" onclick="playAudio('${t.audio_url}', this, 'b-${i}', 'c-${i}')"><div class="play-icon"></div></div>` : ''}
                     </div>
                     <div class="info">
                         <div class="date">${date}</div>
-                        <h3 class="place-title">@${t.nome_posto}</h3>
+                        <div class="name-row">
+                            <h3 class="place-title">@${t.nome_posto}</h3>
+                            ${t.audio_url ? `
+                                <div class="mini-play" onclick="playAudio('${t.audio_url}', 'b-${i}', 'c-${i}')">
+                                    <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+                                </div>
+                            ` : ''}
+                        </div>
                         <div class="p-cont" id="c-${i}" style="visibility:hidden"><div class="p-bar" id="b-${i}"></div></div>
                     </div>
                 </div>`
@@ -160,17 +159,16 @@
         }
     }
 
-    function playAudio(url, playBtn, barId, contId) {
+    function playAudio(url, barId, contId) {
         if (!window.currentAudio) window.currentAudio = new Audio();
         const audio = window.currentAudio;
         audio.src = url;
         const bar = document.getElementById(barId);
         const cont = document.getElementById(contId);
         cont.style.visibility = 'visible';
-        playBtn.style.opacity = "0.3";
         audio.ontimeupdate = () => { if (audio.duration) bar.style.width = (audio.currentTime / audio.duration * 100) + "%"; };
         audio.play().catch(() => alert("Tocca di nuovo!"));
-        audio.onended = () => { cont.style.visibility = 'hidden'; bar.style.width = "0%"; playBtn.style.opacity = "1"; };
+        audio.onended = () => { cont.style.visibility = 'hidden'; bar.style.width = "0%"; };
     }
 
     async function toggleRec() {
