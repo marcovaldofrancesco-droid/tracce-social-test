@@ -3,73 +3,96 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>TRACCE FIX</title>
+    <title>TRACCE CHRONO PREMIUM</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <style>
-        :root { --accent: #ff3b30; --bg: #000; }
+        :root { --accent: #ff3b30; --bg: #000; --glass: rgba(255, 255, 255, 0.1); }
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; font-family: -apple-system, sans-serif; }
         body { margin: 0; background: var(--bg); color: #fff; height: 100dvh; overflow: hidden; }
 
-        #main-slider { display: flex; width: 200vw; height: 100dvh; transition: transform 0.5s ease; }
+        /* --- UI ELEMENTS --- */
+        #main-slider { display: flex; width: 200vw; height: 100dvh; transition: transform 0.6s cubic-bezier(0.2, 1, 0.2, 1); }
         .page { width: 100vw; height: 100dvh; position: relative; overflow-y: auto; padding: 40px 25px 120px; }
-        #gallery-feed { height: 100%; width: 100%; overflow-y: scroll; scroll-snap-type: y mandatory; position: absolute; top:0; left:0; background: #000; }
+        #gallery-feed { height: 100%; width: 100%; overflow-y: scroll; scroll-snap-type: y mandatory; position: absolute; top:0; left:0; }
+        #gallery-feed::-webkit-scrollbar { display: none; }
         
-        .spot-card { height: 100dvh; width: 100vw; scroll-snap-align: start; position: relative; display: flex; align-items: flex-end; }
-        .spot-img { position: absolute; top:0; left:0; width: 100%; height: 100%; object-fit: cover; z-index: 1; }
-        .vignette { position: absolute; bottom: 0; width: 100%; height: 70%; background: linear-gradient(to top, #000 10%, transparent); z-index: 2; pointer-events: none; }
+        .spot-card { height: 100dvh; width: 100vw; scroll-snap-align: start; position: relative; background: #000; }
+        .spot-img { width: 100%; height: 100%; object-fit: cover; }
+        .vignette { position: absolute; bottom: 0; width: 100%; height: 65%; background: linear-gradient(to top, #000 20%, transparent); pointer-events: none; }
         
-        .content-overlay { position: relative; z-index: 3; padding: 30px; width: 100%; margin-bottom: 100px; }
-        .audio-badge { background: var(--accent); color: #fff; padding: 15px 25px; border-radius: 30px; font-weight: 900; border: none; cursor: pointer; display: flex; align-items: center; gap: 10px; }
-        
-        .progress-wrapper { width: 100%; height: 4px; background: rgba(255,255,255,0.2); border-radius: 2px; margin-top: 10px; display: none; }
-        .progress-fill { width: 0%; height: 100%; background: #fff; }
+        /* AUDIO BARS */
+        .audio-badge { 
+            background: var(--accent); color: #fff; padding: 15px 25px; border-radius: 30px; 
+            font-size: 14px; font-weight: 900; display: flex; align-items: center; gap: 10px; 
+            cursor: pointer; border: none; width: fit-content; margin-top: 15px;
+        }
+        .play-progress-bg { width: 100%; height: 4px; background: rgba(255,255,255,0.2); border-radius: 2px; margin-top: 8px; display: none; overflow: hidden; }
+        .play-progress-fill { width: 0%; height: 100%; background: #fff; }
 
+        /* CAMERA & REC INTERFACE */
         #camera-modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000; z-index: 5000; display: none; }
         #video { width: 100%; height: 100%; object-fit: cover; }
-        .cam-ui { position: absolute; bottom: 40px; width: 100%; padding: 0 25px; display: flex; flex-direction: column; align-items: center; gap: 20px; z-index: 5001; }
+        .cam-ui { position: absolute; bottom: 40px; width: 100%; padding: 0 25px; display: flex; flex-direction: column; align-items: center; gap: 15px; }
         
-        .nav-dock { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); width: 280px; height: 75px; background: rgba(0,0,0,0.85); backdrop-filter: blur(15px); border-radius: 40px; border: 1px solid rgba(255,255,255,0.1); display: flex; justify-content: space-around; align-items: center; z-index: 4000; }
-        .add-btn { width: 60px; height: 60px; background: var(--accent); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 35px; color: #fff; border: none; }
+        .rec-timer-container { width: 100%; display: none; flex-direction: column; align-items: center; gap: 5px; }
+        .rec-bar-bg { width: 100%; height: 6px; background: rgba(255,255,255,0.2); border-radius: 3px; overflow: hidden; }
+        .rec-bar-fill { width: 0%; height: 100%; background: var(--accent); }
+        #timer-text { font-size: 12px; font-weight: 900; color: var(--accent); }
+
+        #rec-btn { background: rgba(255,255,255,0.2); border: 2px solid #fff; width: 70px; height: 70px; border-radius: 50%; font-size: 28px; color: #fff; display: flex; align-items: center; justify-content: center; }
+        #rec-btn.recording { background: var(--accent); border-color: var(--accent); }
+        #rec-btn.ready { color: #4cd964; border-color: #4cd964; box-shadow: 0 0 15px #4cd964; }
+
+        /* NAVIGATION */
+        .nav-dock { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); width: 280px; height: 75px; background: rgba(0,0,0,0.8); backdrop-filter: blur(20px); border-radius: 40px; border: 1px solid rgba(255,255,255,0.1); display: flex; justify-content: space-around; align-items: center; z-index: 4000; }
+        .add-btn { width: 60px; height: 60px; background: var(--accent); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 38px; color: #fff; border: none; }
         
-        #loading { position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.9); z-index:9999; display:none; align-items:center; justify-content:center; flex-direction:column; }
+        #loading-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 9999; display: none; align-items: center; justify-content: center; flex-direction: column; }
+        @keyframes spin { to { transform: rotate(360deg); } }
     </style>
 </head>
 <body>
 
-    <div id="loading">
+    <div id="loading-overlay">
         <div style="width:40px; height:40px; border:4px solid #333; border-top-color:var(--accent); border-radius:50%; animation:spin 1s linear infinite;"></div>
-        <p>SALVATAGGIO...</p>
+        <p style="margin-top:20px; font-weight:800; font-size:12px; letter-spacing:1px;">SALVATAGGIO TRACCIA...</p>
     </div>
 
     <div id="main-slider">
         <div class="page" id="profile-page">
-            <h1 id="u-name" onclick="editName()">Esploratore</h1>
-            <input type="text" id="new-place-name" placeholder="Nome nuovo varco..." style="width:100%; padding:15px; border-radius:15px; border:none; background:#222; color:#fff; margin-top:20px;">
-            <button onclick="generateNewPlace()" style="width:100%; padding:15px; background:#fff; border:none; border-radius:15px; margin-top:10px; font-weight:bold;">CREA QR</button>
-            <div id="qrcode" style="margin-top:20px; display:none; background:#fff; padding:15px; border-radius:15px; justify-content:center;"></div>
+            <h1 id="u-name" onclick="editName()" style="font-size: 30px; font-weight: 900; margin: 0;">Esploratore</h1>
+            <div style="margin-top:40px; background: var(--glass); padding: 25px; border-radius: 25px;">
+                <input type="text" id="new-place-name" style="width:100%; background:#111; border:none; padding:18px; border-radius:15px; color:#fff;" placeholder="Nome nuovo varco...">
+                <button onclick="generateNewPlace()" style="width:100%; background:#fff; padding:18px; border-radius:15px; font-weight:900; margin-top:10px; border:none;">CREA QR CODE</button>
+                <div id="qrcode" style="margin-top:20px; display:none; justify-content:center; background:#fff; padding:15px; border-radius:15px;"></div>
+            </div>
         </div>
+        
         <div class="page" style="padding:0;"><div id="gallery-feed"></div></div>
     </div>
 
     <div id="camera-modal">
         <video id="video" autoplay playsinline muted></video>
         <div class="cam-ui">
-            <input type="text" id="desc-input" placeholder="Cosa succede qui?" style="width:100%; padding:15px; border-radius:15px; border:none; background:rgba(0,0,0,0.7); color:#fff;">
-            <div style="display:flex; align-items:center; gap:30px;">
-                <button onclick="switchCamera()" style="background:none; border:none; font-size:25px;">🔄</button>
-                <button onclick="capture()" style="width:70px; height:70px; border-radius:50%; border:4px solid #fff; background:none;"></button>
-                <button id="rec-btn" onclick="toggleRecording()">🎤</button>
-                <button onclick="closeCam()" style="background:none; border:none; font-size:25px; color:#fff;">✕</button>
+            <div class="rec-timer-container" id="rec-container">
+                <span id="timer-text">RESTANTI: 20s</span>
+                <div class="rec-bar-bg"><div class="rec-bar-fill" id="rec-bar"></div></div>
             </div>
-            <div id="rec-status" style="color:var(--accent); font-weight:800; visibility:hidden;">REC: <span id="timer">20</span>s</div>
+            <input type="text" id="desc-input" placeholder="Aggiungi una descrizione..." style="width:100%; background:rgba(0,0,0,0.8); border:none; padding:18px; border-radius:20px; color:#fff;">
+            <div style="display:flex; align-items:center; gap:35px;">
+                <button onclick="switchCamera()" style="background:none; border:none; font-size:30px;">🔄</button>
+                <button onclick="capture()" style="width:80px; height:80px; border-radius:50%; border:5px solid #fff; background:none;"></button>
+                <button id="rec-btn" onclick="toggleRecording()">🎤</button>
+                <button onclick="closeCam()" style="background:none; border:none; font-size:30px; color:#fff;">✕</button>
+            </div>
         </div>
     </div>
 
     <div class="nav-dock">
-        <button onclick="goTo(0)" style="background:none; border:none; font-size:25px;">👤</button>
-        <button class="add-btn" onclick="openCam()">+</button>
-        <button onclick="goTo(1)" style="background:none; border:none; font-size:25px;">🏠</button>
+        <button onclick="goTo(0)" style="background:none; border:none; font-size:28px; opacity:0.5;">👤</button>
+        <button class="add-btn" onclick="openCamWithUnlock()">+</button>
+        <button onclick="goTo(1)" style="background:none; border:none; font-size:28px;">🏠</button>
     </div>
 
     <canvas id="canvas" style="display:none;"></canvas>
@@ -81,9 +104,18 @@
 
         const idTag = new URLSearchParams(window.location.search).get('id');
         let profile = JSON.parse(localStorage.getItem('tracce_v4')) || { name: "Esploratore" };
-        let mediaRecorder, audioChunks = [], currentFacing = 'environment', capturedAudioBlob = null, recInterval;
+        let mediaRecorder, audioChunks = [], currentFacing = 'environment', capturedAudioBlob = null;
+        let audioUnlocked = false, recInterval;
+        const MAX_REC_TIME = 20;
 
         if (idTag) { document.getElementById('u-name').innerText = profile.name; loadFeed(); goTo(1); }
+        else { document.getElementById('profile-page').innerHTML += `<div style="text-align:center; padding:50px;">Scansiona un QR per iniziare.</div>`; }
+
+        function unlockAudioContext() {
+            if (audioUnlocked) return;
+            new Audio("data:audio/wav;base64,UklGRigAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQAAAAA=").play();
+            audioUnlocked = true;
+        }
 
         async function loadFeed() {
             const { data, error } = await supabaseClient.from('spots').select('*').eq('id_tag', idTag).order('created_at', { ascending: false });
@@ -91,115 +123,133 @@
             if (data && data.length > 0) {
                 feed.innerHTML = data.map((t, i) => `
                     <div class="spot-card">
-                        <img src="${t.foto_url}" class="spot-img" onerror="this.src='https://via.placeholder.com/1080x1920/000000/FFFFFF?text=Errore+Immagine'">
+                        <img src="${t.foto_url}" class="spot-img" onerror="this.src='https://via.placeholder.com/1080x1920/000000/FFFFFF?text=Immagine+non+trovata'">
                         <div class="vignette"></div>
-                        <div class="content-overlay">
-                            <h2 style="margin:0;">@${t.nome_posto}</h2>
-                            <p style="opacity:0.8; margin:10px 0 20px;">${t.descrizione || ''}</p>
+                        <div style="position:absolute; bottom:130px; left:25px; right:25px;">
+                            <h2 style="margin:0; font-size:28px;">@${t.nome_posto}</h2>
+                            <p style="margin:8px 0; opacity:0.8;">${t.descrizione || ''}</p>
                             ${t.audio_url ? `
-                                <button class="audio-badge" onclick="playAudio('${t.audio_url}', this, 'bar-${i}')">🔊 ASCOLTA</button>
-                                <div class="progress-wrapper" id="wrap-${i}"><div class="progress-fill" id="bar-${i}"></div></div>
+                                <div>
+                                    <button class="audio-badge" onclick="playAudio('${t.audio_url}', this, 'p-bar-${i}')">🔊 ASCOLTA</button>
+                                    <div class="play-progress-bg" id="p-wrap-${i}"><div class="play-progress-fill" id="p-bar-${i}"></div></div>
+                                </div>
                             ` : ''}
                         </div>
                     </div>
                 `).join('');
-            } else {
-                feed.innerHTML = '<div style="padding:100px 40px; text-align:center; opacity:0.5;">Ancora nessuna traccia qui. Sii il primo!</div>';
             }
         }
 
         async function toggleRecording() {
             const btn = document.getElementById('rec-btn');
-            const status = document.getElementById('rec-status');
+            const container = document.getElementById('rec-container');
+            const bar = document.getElementById('rec-bar');
+            const text = document.getElementById('timer-text');
+
             if (!mediaRecorder || mediaRecorder.state === "inactive") {
                 const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
                 mediaRecorder = new MediaRecorder(stream);
                 audioChunks = [];
-                let t = 20;
-                status.style.visibility = 'visible';
+                let elapsed = 0;
+                
+                container.style.display = 'flex';
+                btn.classList.add('recording');
+
                 recInterval = setInterval(() => {
-                    t--; document.getElementById('timer').innerText = t;
-                    if(t <= 0) toggleRecording();
-                }, 1000);
+                    elapsed += 0.1;
+                    let progress = (elapsed / MAX_REC_TIME) * 100;
+                    bar.style.width = progress + "%";
+                    text.innerText = `RESTANTI: ${Math.ceil(MAX_REC_TIME - elapsed)}s`;
+                    if (elapsed >= MAX_REC_TIME) toggleRecording();
+                }, 100);
+
                 mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
                 mediaRecorder.onstop = () => {
                     clearInterval(recInterval);
                     capturedAudioBlob = new Blob(audioChunks, { type: 'audio/mp4' });
-                    btn.style.color = "#4cd964"; btn.innerText = "✅";
-                    status.style.visibility = 'hidden';
+                    btn.classList.remove('recording');
+                    btn.classList.add('ready'); btn.innerText = "✅";
+                    container.style.display = 'none';
                 };
                 mediaRecorder.start();
-                btn.style.background = "var(--accent)";
             } else {
                 mediaRecorder.stop();
-                btn.style.background = "rgba(255,255,255,0.2)";
             }
         }
 
         function playAudio(url, btn, barId) {
+            unlockAudioContext();
             const audio = new Audio(url);
             const bar = document.getElementById(barId);
-            const wrap = document.getElementById('wrap-' + barId.split('-')[1]);
+            const wrap = document.getElementById('p-wrap-' + barId.split('-')[2]);
+            
             btn.innerText = "⏳...";
             wrap.style.display = 'block';
-            audio.ontimeupdate = () => bar.style.width = (audio.currentTime / audio.duration) * 100 + "%";
+
+            audio.ontimeupdate = () => {
+                bar.style.width = (audio.currentTime / audio.duration) * 100 + "%";
+            };
+
             audio.play().then(() => {
-                btn.innerText = "🎵 IN RIPRODUZIONE";
-                audio.onended = () => { btn.innerText = "🔊 ASCOLTA"; wrap.style.display = 'none'; };
-            }).catch(() => alert("Impossibile riprodurre l'audio."));
+                btn.innerText = "🎵 RIPRODUZIONE";
+                audio.onended = () => {
+                    btn.innerText = "🔊 ASCOLTA";
+                    wrap.style.display = 'none';
+                    bar.style.width = "0%";
+                };
+            }).catch(() => { btn.innerText = "❌ ERRORE"; });
         }
 
         async function capture() {
-            document.getElementById('loading').style.display = 'flex';
+            const loading = document.getElementById('loading-overlay');
+            loading.style.display = 'flex';
+
             const v = document.getElementById('video');
             const c = document.getElementById('canvas');
             c.width = v.videoWidth; c.height = v.videoHeight;
             const ctx = c.getContext('2d');
             if(currentFacing === 'user') { ctx.translate(c.width, 0); ctx.scale(-1, 1); }
             ctx.drawImage(v, 0, 0);
+            
             const fotoBlob = await new Promise(r => c.toBlob(r, 'image/jpeg', 0.8));
-            const name = "T_" + Date.now();
+            const timestamp = Date.now();
+            const cleanName = profile.name.replace(/[^a-z0-9]/gi, '_').toLowerCase();
 
             try {
-                // UPLOAD
-                const fPath = 'foto/' + name + '.jpg';
-                await supabaseClient.storage.from('spots').upload(fPath, fotoBlob);
-                const { data: fLink } = supabaseClient.storage.from('spots').getPublicUrl(fPath);
+                // 1. Upload Foto
+                const fotoPath = `foto/${cleanName}_${timestamp}.jpg`;
+                await supabaseClient.storage.from('spots').upload(fotoPath, fotoBlob);
+                const { data: fUrl } = supabaseClient.storage.from('spots').getPublicUrl(fotoPath);
 
-                let aLink = null;
+                // 2. Upload Audio
+                let aUrl = null;
                 if(capturedAudioBlob) {
-                    const aPath = 'audio/' + name + '.mp4';
-                    await supabaseClient.storage.from('spots').upload(aPath, capturedAudioBlob);
-                    const { data: res } = supabaseClient.storage.from('spots').getPublicUrl(aPath);
-                    aLink = res.publicUrl;
+                    const audioPath = `audio/${cleanName}_${timestamp}.mp4`;
+                    await supabaseClient.storage.from('spots').upload(audioPath, capturedAudioBlob);
+                    const { data: res } = supabaseClient.storage.from('spots').getPublicUrl(audioPath);
+                    aUrl = res.publicUrl;
                 }
 
+                // 3. Database
                 await supabaseClient.from('spots').insert([{ 
                     id_tag: idTag, nome_posto: profile.name, 
                     descrizione: document.getElementById('desc-input').value, 
-                    foto_url: fLink.publicUrl, audio_url: aLink 
+                    foto_url: fUrl.publicUrl, audio_url: aUrl 
                 }]);
 
                 location.reload();
-            } catch (e) { 
-                alert("Errore caricamento. Verifica il bucket 'spots' su Supabase."); 
-                document.getElementById('loading').style.display = 'none';
+            } catch (e) {
+                alert("Errore caricamento! Controlla i permessi dello storage.");
+                loading.style.display = 'none';
             }
         }
 
-        function openCam() { 
-            document.getElementById('camera-modal').style.display = 'block'; 
-            navigator.mediaDevices.getUserMedia({video:{facingMode:currentFacing, width:1280}}).then(s => document.getElementById('video').srcObject = s);
-            // Sblocco audio per iOS
-            new Audio("data:audio/wav;base64,UklGRigAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQAAAAA=").play();
-        }
+        function openCamWithUnlock() { unlockAudioContext(); document.getElementById('camera-modal').style.display = 'block'; navigator.mediaDevices.getUserMedia({video:{facingMode:currentFacing, width:1280}}).then(s => document.getElementById('video').srcObject = s); }
         function closeCam() { document.getElementById('camera-modal').style.display = 'none'; if(document.getElementById('video').srcObject) document.getElementById('video').srcObject.getTracks().forEach(t => t.stop()); }
         function goTo(p) { document.getElementById('main-slider').style.transform = `translateX(-${p * 100}vw)`; }
-        function editName() { const n = prompt("Nome:"); if(n) { profile.name = n; localStorage.setItem('tracce_v4', JSON.stringify(profile)); location.reload(); }}
-        function switchCamera() { currentFacing = currentFacing==='environment'?'user':'environment'; openCam(); }
-        function generateNewPlace() { const n = document.getElementById('new-place-name').value.trim().replace(/\s+/g, '-'); if(!n) return; const url = window.location.origin + window.location.pathname + "?id=" + n; const qr = document.getElementById('qrcode'); qr.style.display = 'flex'; qr.innerHTML = ""; new QRCode(qr, { text: url, width: 150, height: 150 }); }
-        
-        @keyframes spin { to { transform: rotate(360deg); } }
+        function editName() { const n = prompt("Tuo Nome:"); if(n) { profile.name = n; localStorage.setItem('tracce_v4', JSON.stringify(profile)); location.reload(); }}
+        function switchCamera() { currentFacing = currentFacing==='environment'?'user':'environment'; openCamWithUnlock(); }
+        function generateNewPlace() { const name = document.getElementById('new-place-name').value.trim().replace(/\s+/g, '-'); if(!name) return; const url = window.location.origin + window.location.pathname + "?id=" + name; const qrDiv = document.getElementById('qrcode'); qrDiv.style.display = 'flex'; qrDiv.innerHTML = ""; new QRCode(qrDiv, { text: url, width: 150, height: 150 }); }
     </script>
 </body>
 </html>
