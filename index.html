@@ -3,22 +3,69 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>TRACCE</title>
-    <link rel="stylesheet" href="style.css">
+    <title>TRACCE PREMIUM</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <style>
+        :root { 
+            --accent: #ff3b30; 
+            --bg: #000;
+            --card-bg: #1c1c1e;
+            --glass: rgba(255, 255, 255, 0.1);
+        }
+
+        * { box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+        body { margin: 0; background: var(--bg); color: #fff; height: 100dvh; overflow: hidden; }
+
+        #main-slider { display: flex; width: 200vw; height: 100dvh; transition: 0.6s cubic-bezier(0.23, 1, 0.32, 1); }
+        .page { width: 100vw; height: 100dvh; position: relative; overflow-y: auto; padding-bottom: 140px; }
+
+        #gallery-feed { height: 100%; width: 100%; overflow-y: scroll; scroll-snap-type: y mandatory; }
+        .spot-card { height: 100dvh; width: 100vw; scroll-snap-align: start; position: relative; background: #000; }
+        .spot-img { width: 100%; height: 100%; object-fit: cover; }
+        
+        .spot-card::after {
+            content: ""; position: absolute; inset: 0;
+            background: linear-gradient(180deg, rgba(0,0,0,0.2) 0%, transparent 50%, rgba(0,0,0,0.9) 100%);
+            pointer-events: none;
+        }
+
+        .info { position: absolute; bottom: 140px; left: 25px; right: 25px; z-index: 10; }
+        .info h3 { margin: 0; font-size: 32px; font-weight: 800; letter-spacing: -1px; }
+
+        .btn-audio { 
+            background: rgba(255,255,255,0.2); color: #fff; border: 1px solid rgba(255,255,255,0.3); 
+            padding: 14px 24px; border-radius: 40px; font-weight: 700; backdrop-filter: blur(10px);
+            margin-top: 15px; display: flex; align-items: center; gap: 10px;
+        }
+
+        .nav { 
+            position: fixed; bottom: 35px; left: 50%; transform: translateX(-50%); 
+            display: flex; align-items: center; gap: 35px; z-index: 1000; 
+            background: rgba(30, 30, 30, 0.6); padding: 10px 40px; border-radius: 50px; 
+            backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.1);
+        }
+        .nav-btn { background: none; border: none; color: #fff; font-size: 24px; opacity: 0.4; }
+        .nav-btn.active { opacity: 1; }
+        .add { width: 64px; height: 64px; background: #fff; border-radius: 50%; border: none; font-size: 30px; font-weight: bold; }
+
+        #rec-btn.recording { background: var(--accent) !important; animation: pulse 1s infinite; }
+        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
+
+        #loader { position: fixed; inset: 0; background: #000; z-index: 9999; display: none; align-items: center; justify-content: center; }
+    </style>
 </head>
 <body>
 
-<div id="loader" style="display:none;">ELABORAZIONE...</div>
+<div id="loader">CARICAMENTO...</div>
 
 <div id="main-slider">
-    <div class="page" style="padding: 60px 30px;">
+    <div class="page" style="padding: 60px 25px;">
         <h1 id="u-name" onclick="editName()">Ciao!</h1>
-        <div class="card">
-            <input type="text" id="place-name" placeholder="Nome nuovo posto...">
-            <button class="btn-main" onclick="genQR()">GENERA QR</button>
-            <div id="qrcode" style="margin-top:25px; background:#fff; padding:15px; display:none; justify-content:center; border-radius:15px;"></div>
+        <div style="background: #1c1c1e; padding: 20px; border-radius: 20px; margin-top: 20px;">
+            <input type="text" id="place-name" placeholder="Nome Tag (es: Navigli)" style="width:100%; padding:15px; border-radius:10px; border:none; background:#2c2c2e; color:#fff;">
+            <button onclick="genQR()" style="width:100%; padding:15px; margin-top:10px; border-radius:10px; border:none; background:#fff; font-weight:bold;">GENERA QR</button>
+            <div id="qrcode" style="margin-top:15px; display:none; justify-content:center; background:#fff; padding:10px; border-radius:10px;"></div>
         </div>
     </div>
     <div class="page" style="padding:0;"><div id="gallery-feed"></div></div>
@@ -26,25 +73,105 @@
 
 <div class="nav">
     <button class="nav-btn active" id="btn-p" onclick="goTo(0)">👤</button>
-    <div style="position: relative;">
-        <div class="chrono-ring" id="chrono-ring"></div>
-        <button class="add" onclick="openCam()">+</button>
-    </div>
+    <button class="add" onclick="openCam()">+</button>
     <button class="nav-btn" id="btn-f" onclick="goTo(1)">🏠</button>
 </div>
 
 <div id="cam-modal" style="position:fixed; inset:0; background:#000; z-index:2000; display:none;">
     <video id="video" autoplay playsinline muted style="width:100%; height:100%; object-fit:cover;"></video>
-    <div id="rec-status" style="position:absolute; top:40px; width:100%; text-align:center; color:red; font-weight:bold; display:none;">● REGISTRAZIONE...</div>
-    <div style="position:absolute; bottom:60px; width:100%; display:flex; justify-content:space-around; align-items:center;">
-        <button onclick="closeCam()" style="background:none; border:none; color:#fff; font-size:35px;">✕</button>
-        <button id="snap-btn" onclick="capture()" style="width:85px; height:85px; border:6px solid #fff; border-radius:50%; background:none;"></button>
-        <button id="rec-btn" onclick="toggleRec()" style="background:rgba(255,255,255,0.2); border:none; width:60px; height:60px; border-radius:50%; color:#fff; font-size:24px;">🎤</button>
+    <div style="position:absolute; bottom:50px; width:100%; display:flex; justify-content:space-around; align-items:center;">
+        <button onclick="closeCam()" style="color:#fff; background:none; border:none; font-size:30px;">✕</button>
+        <button onclick="capture()" style="width:75px; height:75px; border-radius:50%; border:5px solid #fff; background:none;"></button>
+        <button id="rec-btn" onclick="toggleRec()" style="width:50px; height:50px; border-radius:50%; border:none; background:rgba(255,255,255,0.2); color:#fff; font-size:20px;">🎤</button>
     </div>
 </div>
 
 <canvas id="canvas" style="display:none;"></canvas>
 
-<script src="script.js"></script>
+<script>
+    const S_URL = 'https://gdsrmowtzcahbtagxoft.supabase.co';
+    const S_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdkc3Jtb3d0emNhaGJ0YWd4b2Z0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM5MTgzNDEsImV4cCI6MjA4OTQ5NDM0MX0.Ep-DcUjW1FnZduH-QIWUxyI0juRSLJS_K2TDM56DkCk';
+    const sb = supabase.createClient(S_URL, S_KEY);
+
+    const idTag = new URLSearchParams(window.location.search).get('id');
+    let profile = JSON.parse(localStorage.getItem('tracce_v4')) || { name: "Esploratore" };
+    let mediaRecorder, chunks = [], audioBase64 = null;
+
+    document.getElementById('u-name').innerText = "Ciao, " + profile.name;
+    if(idTag) { loadFeed(); goTo(1); }
+
+    async function loadFeed() {
+        const { data } = await sb.from('spots').select('*').eq('id_tag', idTag).order('created_at', {ascending: false});
+        const feed = document.getElementById('gallery-feed');
+        if(data && data.length > 0) {
+            feed.innerHTML = data.map((t, i) => `
+                <div class="spot-card">
+                    <img src="${t.foto_url}" class="spot-img">
+                    <div class="info">
+                        <h3>@${t.nome_posto}</h3>
+                        ${t.audio_url ? `<button class="btn-audio" onclick="playAudio('${t.audio_url}', this)">▶ ASCOLTA</button>` : ''}
+                    </div>
+                </div>
+            `).join('');
+        }
+    }
+
+    function playAudio(url, btn) {
+        const audio = new Audio(url);
+        btn.innerText = "⌛...";
+        audio.play().then(() => btn.innerText = "🎵 IN CORSO").catch(() => alert("Tocca lo schermo per l'audio"));
+        audio.onended = () => btn.innerText = "▶ ASCOLTA";
+    }
+
+    async function toggleRec() {
+        const btn = document.getElementById('rec-btn');
+        if(!mediaRecorder || mediaRecorder.state === 'inactive') {
+            const stream = await navigator.mediaDevices.getUserMedia({audio: true});
+            mediaRecorder = new MediaRecorder(stream);
+            chunks = [];
+            mediaRecorder.ondataavailable = e => chunks.push(e.data);
+            mediaRecorder.onstop = () => {
+                const blob = new Blob(chunks, {type: 'audio/webm'});
+                const reader = new FileReader();
+                reader.readAsDataURL(blob);
+                reader.onloadend = () => { audioBase64 = reader.result; btn.innerText = "✅"; btn.classList.remove('recording'); };
+                stream.getTracks().forEach(t => t.stop());
+            };
+            mediaRecorder.start();
+            btn.innerText = "⏹"; btn.classList.add('recording');
+        } else { mediaRecorder.stop(); }
+    }
+
+    async function capture() {
+        document.getElementById('loader').style.display = 'flex';
+        const v = document.getElementById('video');
+        const c = document.getElementById('canvas');
+        c.width = 720; c.height = (v.videoHeight / v.videoWidth) * 720;
+        c.getContext('2d').drawImage(v, 0, 0, c.width, c.height);
+        const foto = c.toDataURL('image/jpeg', 0.6);
+        await sb.from('spots').insert([{ id_tag: idTag, nome_posto: profile.name, foto_url: foto, audio_url: audioBase64 }]);
+        location.reload();
+    }
+
+    function openCam() { 
+        document.getElementById('cam-modal').style.display = 'block'; 
+        navigator.mediaDevices.getUserMedia({video: {facingMode:'environment'}}).then(s => document.getElementById('video').srcObject = s);
+    }
+    function closeCam() { document.getElementById('cam-modal').style.display = 'none'; }
+    function goTo(p) { 
+        document.getElementById('main-slider').style.transform = `translateX(-${p * 100}vw)`;
+        document.getElementById('btn-p').classList.toggle('active', p===0);
+        document.getElementById('btn-f').classList.toggle('active', p===1);
+    }
+    function editName() { const n = prompt("Nome:"); if(n) { profile.name = n; localStorage.setItem('tracce_v4', JSON.stringify(profile)); location.reload(); }}
+    function genQR() { 
+        const n = document.getElementById('place-name').value; 
+        if(!n) return;
+        const url = window.location.origin + window.location.pathname + "?id=" + encodeURIComponent(n);
+        const qr = document.getElementById('qrcode');
+        qr.style.display = 'flex'; qr.innerHTML = "";
+        new QRCode(qr, {text: url, width: 180, height: 180});
+    }
+</script>
 </body>
 </html>
