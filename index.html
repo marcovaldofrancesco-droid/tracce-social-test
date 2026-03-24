@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>TRACCE AUDIO</title>
+    <title>TRACCE AUDIO PRO</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <style>
@@ -25,29 +25,28 @@
         #gallery-feed::-webkit-scrollbar { display: none; }
         .spot-card { height: 100dvh; width: 100vw; scroll-snap-align: start; position: relative; background: #111; }
         .spot-img { width: 100%; height: 100%; object-fit: cover; }
-        .vignette { position: absolute; bottom: 0; width: 100%; height: 50%; background: linear-gradient(to top, rgba(0,0,0,0.95), transparent); pointer-events: none; }
+        .vignette { position: absolute; bottom: 0; width: 100%; height: 55%; background: linear-gradient(to top, rgba(0,0,0,1), transparent); pointer-events: none; }
         
-        /* Animazione Cuore */
         .heart-pop { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0); font-size: 100px; color: var(--accent); opacity: 0; pointer-events: none; z-index: 1000; }
         @keyframes pop { 0% { transform: translate(-50%, -50%) scale(0); opacity: 0; } 50% { opacity: 1; transform: translate(-50%, -50%) scale(1.2); } 100% { opacity: 0; transform: translate(-50%, -50%) scale(1); } }
 
-        /* Audio Badge nel Feed */
-        .audio-badge { background: var(--accent); color: #fff; padding: 8px 15px; border-radius: 20px; font-size: 12px; font-weight: bold; display: flex; align-items: center; gap: 8px; margin-top: 10px; width: fit-content; animation: pulse 1.5s infinite; cursor: pointer; }
-        @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(255, 59, 48, 0.7); } 70% { box-shadow: 0 0 0 10px rgba(255, 59, 48, 0); } 100% { box-shadow: 0 0 0 0 rgba(255, 59, 48, 0); } }
+        .audio-badge { background: var(--accent); color: #fff; padding: 12px 20px; border-radius: 25px; font-size: 13px; font-weight: 800; display: flex; align-items: center; gap: 10px; margin-top: 15px; width: fit-content; cursor: pointer; border: none; box-shadow: 0 4px 15px rgba(255,59,48,0.3); transition: 0.2s; }
+        .audio-badge:active { transform: scale(0.95); }
 
         /* --- UI CAMERA --- */
         #camera-modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000; z-index: 5000; display: none; }
         #video { width: 100%; height: 100%; object-fit: cover; }
         .cam-ui { position: absolute; bottom: 40px; width: 100%; padding: 0 25px; display: flex; flex-direction: column; align-items: center; gap: 20px; }
         
-        #rec-btn { background: var(--glass); border: 2px solid #fff; width: 60px; height: 60px; border-radius: 50%; font-size: 24px; color: #fff; display: flex; align-items: center; justify-content: center; }
-        #rec-btn.recording { background: var(--accent); border-color: var(--accent); animation: pulse 1s infinite; }
+        #rec-btn { background: rgba(255,255,255,0.2); border: 2px solid #fff; width: 60px; height: 60px; border-radius: 50%; font-size: 24px; color: #fff; display: flex; align-items: center; justify-content: center; transition: 0.3s; }
+        #rec-btn.recording { background: var(--accent); border-color: var(--accent); animation: pulse-red 1s infinite; }
+        @keyframes pulse-red { 0% { transform: scale(1); } 50% { transform: scale(1.1); } 100% { transform: scale(1); } }
 
         /* --- NAV DOCK --- */
         .nav-dock { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); width: 280px; height: 70px; background: var(--glass-heavy); backdrop-filter: blur(30px); border-radius: 35px; border: 1px solid rgba(255,255,255,0.1); display: flex; justify-content: space-around; align-items: center; z-index: 4000; }
         .nav-btn { background: none; border: none; font-size: 26px; opacity: 0.4; }
         .nav-btn.active { opacity: 1; }
-        .add-btn { width: 55px; height: 55px; background: var(--accent); border-radius: 22px; display: flex; align-items: center; justify-content: center; font-size: 32px; font-weight: bold; }
+        .add-btn { width: 55px; height: 55px; background: var(--accent); border-radius: 22px; display: flex; align-items: center; justify-content: center; font-size: 32px; font-weight: bold; color: #fff; }
     </style>
 </head>
 <body>
@@ -55,11 +54,11 @@
     <div id="hub-page">
         <div class="hero">
             <h1>Tracce Sonore.</h1>
-            <p style="opacity:0.6;">Ascolta e guarda i ricordi lasciati in questo luogo.</p>
+            <p style="opacity:0.6;">Scopri i ricordi audio-visivi lasciati qui.</p>
         </div>
         <div class="step-box">
-            <h3 style="margin:0;">🎧 Come Funziona</h3>
-            <p style="font-size:14px; opacity:0.8;">Avvicina il telefono a un tag NFC per sentire i suoni del passato e lasciare la tua traccia (Foto + Audio).</p>
+            <h3 style="margin:0;">🎧 Istruzioni</h3>
+            <p style="font-size:14px; opacity:0.8;">Tocca i varchi NFC per ascoltare le storie di chi è passato prima di te.</p>
         </div>
         <button onclick="window.location.href='?id=Generale'" style="width:100%; background:#fff; color:#000; border:none; padding:20px; border-radius:20px; margin-top:30px; font-weight:800;">HUB GLOBALE</button>
     </div>
@@ -68,10 +67,10 @@
         <div class="page" id="profile-page">
             <h1 style="margin:0;">Profilo</h1>
             <div id="u-name" onclick="editName()" style="font-size:24px; color:var(--accent); font-weight:800;">Anonimo</div>
-            <p style="font-size:12px; opacity:0.5; margin-bottom:30px;">Tocca per cambiare nome</p>
+            <p style="font-size:12px; opacity:0.5; margin-bottom:30px;">Tocca il nome per modificarlo</p>
 
             <div class="step-box">
-                <h3 style="margin:0;">🛠️ Crea Varco</h3>
+                <h3 style="margin:0;">🛠️ Crea Nuovo Varco</h3>
                 <input type="text" id="new-place-name" style="width:100%; background:rgba(0,0,0,0.5); border:1px solid #333; padding:15px; border-radius:15px; color:#fff; margin:15px 0;" placeholder="Nome luogo...">
                 <button onclick="generateNewPlace()" style="width:100%; background:#fff; color:#000; border:none; padding:15px; border-radius:15px; font-weight:bold;">GENERA QR</button>
                 <div id="qrcode" style="margin-top:20px; display:none; justify-content:center; background:#fff; padding:15px; border-radius:15px;"></div>
@@ -86,7 +85,7 @@
     <div id="camera-modal">
         <video id="video" autoplay playsinline muted></video>
         <div class="cam-ui">
-            <input type="text" id="desc-input" placeholder="Scrivi qualcosa..." style="width:100%; background:rgba(0,0,0,0.7); border:1px solid #444; padding:15px; border-radius:15px; color:#fff;">
+            <input type="text" id="desc-input" placeholder="Aggiungi un pensiero..." style="width:100%; background:rgba(0,0,0,0.8); border:1px solid #444; padding:15px; border-radius:15px; color:#fff;">
             
             <div style="display:flex; align-items:center; gap:30px;">
                 <button onclick="switchCamera()" style="background:none; border:none; font-size:24px; color:#fff;">🔄</button>
@@ -94,7 +93,7 @@
                 <button id="rec-btn" onclick="toggleRecording()">🎤</button>
                 <button onclick="closeCam()" style="background:none; border:none; font-size:24px; color:#fff;">✕</button>
             </div>
-            <div id="rec-timer" style="font-size:12px; color:var(--accent); font-weight:bold; visibility:hidden;">🔴 REGISTRAZIONE IN CORSO</div>
+            <div id="rec-timer" style="font-size:12px; color:var(--accent); font-weight:bold; visibility:hidden;">🔴 REGISTRAZIONE IN CORSO...</div>
         </div>
     </div>
 
@@ -137,8 +136,8 @@
                         <div style="position:absolute; bottom:120px; left:25px; right:25px;">
                             <h3 style="margin:0;">@${t.nome_posto}</h3>
                             <p style="margin:5px 0; opacity:0.8; font-size:14px;">${t.descrizione || ''}</p>
-                            ${t.audio_url ? `<div class="audio-badge" onclick="playAudio('${t.audio_url}')">🔊 ASCOLTA TRACCIA</div>` : ''}
-                            <div style="font-size:10px; color:var(--accent); margin-top:10px;">❤️ <span id="l-${t.id}">${t.likes || 0}</span> LIKES</div>
+                            ${t.audio_url ? `<button class="audio-badge" onclick="playAudio('${t.audio_url}')">🔊 ASCOLTA TRACCIA</button>` : ''}
+                            <div style="font-size:11px; color:var(--accent); margin-top:12px; font-weight:800;">❤️ <span id="l-${t.id}">${t.likes || 0}</span> APPREZZAMENTI</div>
                         </div>
                     </div>
                 `).join('');
@@ -148,19 +147,22 @@
         async function toggleRecording() {
             const btn = document.getElementById('rec-btn');
             const timer = document.getElementById('rec-timer');
+            
             if (!mediaRecorder || mediaRecorder.state === "inactive") {
                 const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
                 mediaRecorder = new MediaRecorder(stream);
                 audioChunks = [];
-                mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
+                
+                mediaRecorder.ondataavailable = e => { if (e.data.size > 0) audioChunks.push(e.data); };
                 mediaRecorder.onstop = () => {
                     const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
                     const reader = new FileReader();
                     reader.readAsDataURL(audioBlob);
-                    reader.onloadend = () => audioBase64 = reader.result;
+                    reader.onloadend = () => { audioBase64 = reader.result; };
                     btn.classList.remove('recording');
                     timer.style.visibility = 'hidden';
                 };
+                
                 mediaRecorder.start();
                 btn.classList.add('recording');
                 timer.style.visibility = 'visible';
@@ -169,9 +171,14 @@
             }
         }
 
-        function playAudio(url) {
-            const audio = new Audio(url);
-            audio.play();
+        function playAudio(base64Data) {
+            if (!base64Data) return;
+            const audio = new Audio(base64Data);
+            audio.play().catch(e => {
+                console.log("Il browser ha bloccato l'audio, riprova.");
+                // Alcuni browser richiedono un secondo tocco
+                audio.play();
+            });
         }
 
         async function capture() {
@@ -179,9 +186,9 @@
             const c = document.getElementById('canvas');
             c.width = v.videoWidth; c.height = v.videoHeight;
             const ctx = c.getContext('2d');
-            if(currentFacing==='user') { ctx.translate(c.width,0); ctx.scale(-1,1); }
-            ctx.drawImage(v,0,0);
-            const img = c.toDataURL('image/jpeg', 0.6);
+            if(currentFacing === 'user') { ctx.translate(c.width, 0); ctx.scale(-1, 1); }
+            ctx.drawImage(v, 0, 0);
+            const img = c.toDataURL('image/jpeg', 0.5);
             
             await supabaseClient.from('spots').insert([{ 
                 id_tag: idTag, 
@@ -191,7 +198,8 @@
                 audio_url: audioBase64,
                 likes: 0 
             }]);
-            audioBase64 = null; // Reset audio
+            
+            audioBase64 = null;
             closeCam(); load();
         }
 
@@ -211,7 +219,9 @@
 
         function closeCam() {
             document.getElementById('camera-modal').style.display = 'none';
-            document.getElementById('video').srcObject.getTracks().forEach(t => t.stop());
+            if(document.getElementById('video').srcObject) {
+                document.getElementById('video').srcObject.getTracks().forEach(t => t.stop());
+            }
         }
 
         function goTo(p) {
