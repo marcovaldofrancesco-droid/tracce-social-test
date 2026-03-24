@@ -1,0 +1,140 @@
+:root { 
+    --accent: #ff3b30; 
+    --bg: #000;
+    --glass-bg: rgba(30, 30, 30, 0.6);
+    --glass-border: rgba(255, 255, 255, 0.1);
+}
+
+* { 
+    box-sizing: border-box; 
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", sans-serif;
+    -webkit-tap-highlight-color: transparent;
+}
+
+body { 
+    margin: 0; 
+    background: var(--bg); 
+    color: #fff; 
+    height: 100dvh; 
+    overflow: hidden; 
+}
+
+/* Container principale per lo slide tra le pagine */
+#main-slider { 
+    display: flex; 
+    width: 200vw; 
+    height: 100dvh; 
+    transition: 0.6s cubic-bezier(0.2, 1, 0.2, 1); 
+}
+
+.page { 
+    width: 100vw; 
+    height: 100dvh; 
+    position: relative; 
+    overflow-y: auto; 
+    padding-bottom: 150px; 
+}
+
+/* FEED IMMERSIVO (Come nella foto) */
+.spot-card { 
+    height: 100dvh; 
+    width: 100vw; 
+    scroll-snap-align: start; 
+    position: relative; 
+    background: #000; 
+}
+
+.spot-img { 
+    width: 100%; 
+    height: 100%; 
+    object-fit: cover; 
+}
+
+/* L'ombra scura in basso per far leggere i testi bianchi */
+.spot-card::after {
+    content: "";
+    position: absolute;
+    bottom: 0; left: 0; right: 0; height: 50%;
+    background: linear-gradient(to top, rgba(0,0,0,1) 0%, rgba(0,0,0,0.4) 100%);
+    pointer-events: none;
+}
+
+/* TESTI INFO (Posizionamento identico alla foto) */
+.info { 
+    position: absolute; 
+    bottom: 150px; 
+    left: 25px; 
+    right: 25px; 
+    z-index: 10; 
+}
+
+.info p { margin: 0; font-size: 16px; opacity: 0.8; font-weight: 500; }
+.info h3 { margin: 5px 0 15px 0; font-size: 32px; font-weight: 900; letter-spacing: -1px; }
+
+/* BOTTONE AUDIO "GLASS" */
+.btn-audio { 
+    background: rgba(255,255,255,0.1);
+    color: #fff; 
+    border: 1px solid var(--glass-border); 
+    padding: 14px 24px; 
+    border-radius: 40px; 
+    font-weight: 700; 
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    display: flex; 
+    align-items: center; 
+    gap: 10px;
+    text-transform: uppercase;
+    font-size: 12px;
+}
+
+/* NAV BAR SOSPESA (Il cuore del design della foto) */
+.nav { 
+    position: fixed; 
+    bottom: 30px; 
+    left: 50%; 
+    transform: translateX(-50%); 
+    display: flex; 
+    align-items: center; 
+    gap: 40px; 
+    z-index: 1000; 
+    background: var(--glass-bg); 
+    padding: 10px 40px; 
+    border-radius: 60px; 
+    border: 1px solid var(--glass-border); 
+    backdrop-filter: blur(25px);
+    -webkit-backdrop-filter: blur(25px);
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+}
+
+.nav-btn { background: none; border: none; color: #fff; font-size: 24px; opacity: 0.4; }
+.nav-btn.active { opacity: 1; }
+
+/* TASTO CENTRALE BIANCO */
+.add { 
+    width: 60px; 
+    height: 60px; 
+    background: #fff; 
+    border-radius: 50%; 
+    border: none; 
+    color: #000; 
+    font-size: 30px; 
+    display: flex; 
+    align-items: center; 
+    justify-content: center;
+}
+
+/* CERCHIO DI REGISTRAZIONE (Chrono) */
+.chrono-ring {
+    position: absolute;
+    inset: -8px;
+    border: 4px solid var(--accent);
+    border-radius: 50%;
+    display: none;
+    animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+    0% { transform: scale(1); opacity: 1; }
+    100% { transform: scale(1.2); opacity: 0; }
+}
