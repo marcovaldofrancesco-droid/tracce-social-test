@@ -14,23 +14,49 @@
         #slider { display: flex; width: 200vw; height: 100dvh; transition: 0.5s cubic-bezier(0.2, 1, 0.2, 1); }
         .page { width: 100vw; height: 100dvh; position: relative; overflow-y: auto; padding-bottom: 110px; }
 
-        .spot-card { height: 100dvh; scroll-snap-align: start; position: relative; background: #000; border-bottom: 1px solid #111; }
+        /* Feed Estetica Immagine 1 */
+        .spot-card { height: 100dvh; scroll-snap-align: start; position: relative; background: #000; }
         .spot-img { width: 100%; height: 100%; object-fit: cover; }
-        .info { position: absolute; bottom: 140px; left: 20px; right: 20px; z-index: 10; pointer-events: none; }
-        .info * { pointer-events: auto; }
+        .overlay { position: absolute; inset: 0; background: linear-gradient(to bottom, transparent 60%, rgba(0,0,0,0.8)); pointer-events: none; }
         
-        .date { font-size: 12px; color: rgba(255,255,255,0.5); font-weight: 600; margin-bottom: 5px; }
-        .btn-audio { background: #fff; color: #000; border: none; padding: 16px 30px; border-radius: 40px; font-weight: 900; letter-spacing: -0.5px; box-shadow: 0 4px 20px rgba(0,0,0,0.5); }
+        .play-overlay { 
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            width: 90px; height: 90px; background: rgba(255,255,255,0.2); 
+            backdrop-filter: blur(10px); border-radius: 50%; 
+            display: flex; align-items: center; justify-content: center;
+            border: 1px solid rgba(255,255,255,0.3); z-index: 5;
+        }
+        .play-icon { width: 0; height: 0; border-top: 15px solid transparent; border-bottom: 15px solid transparent; border-left: 25px solid white; margin-left: 5px; }
+
+        .info { position: absolute; bottom: 140px; left: 25px; right: 25px; z-index: 10; }
+        .date { font-size: 12px; color: rgba(255,255,255,0.6); font-weight: 600; text-transform: uppercase; letter-spacing: 1px; }
+        .place-title { margin: 5px 0; font-size: 32px; font-weight: 900; }
         
-        .p-cont { width: 100%; height: 5px; background: rgba(255,255,255,0.2); border-radius: 10px; margin-top: 15px; display: none; overflow: hidden; }
-        .p-bar { height: 100%; background: #fff; width: 0%; }
+        .p-cont { width: 100%; height: 4px; background: rgba(255,255,255,0.2); border-radius: 2px; margin-top: 10px; overflow: hidden; }
+        .p-bar { height: 100%; background: #fff; width: 0%; transition: width 0.1s linear; }
 
-        .nav { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); display: flex; gap: 35px; z-index: 1000; background: rgba(20,20,20,0.9); padding: 12px 35px; border-radius: 50px; backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.1); }
-        .add { width: 65px; height: 65px; background: var(--accent); border-radius: 50%; border: none; font-size: 35px; color: #fff; box-shadow: 0 0 20px rgba(255,59,48,0.3); }
+        /* Navigazione Base */
+        .nav { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); display: flex; gap: 35px; z-index: 1000; background: rgba(30,30,30,0.9); padding: 12px 35px; border-radius: 50px; backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.1); }
+        .nav-btn { background: none; border: none; color: #fff; font-size: 24px; opacity: 0.6; padding: 0; }
+        .add { width: 65px; height: 65px; background: var(--accent); border-radius: 50%; border: none; font-size: 35px; color: #fff; margin-top: -10px; box-shadow: 0 4px 15px rgba(255,59,48,0.3); }
 
+        /* Camera & Mic Animazione Immagine 2 */
         #cam-modal { position: fixed; inset: 0; background: #000; z-index: 2000; display: none; }
         video { width: 100%; height: 100%; object-fit: cover; }
-        #rec-notif { position: absolute; top: 50px; left: 50%; transform: translateX(-50%); color: var(--accent); font-weight: 900; display: none; text-shadow: 0 0 10px #000; }
+        
+        #mic-wave { 
+            position: absolute; bottom: 160px; left: 50%; transform: translateX(-50%);
+            width: 80px; height: 80px; border-radius: 50%; background: rgba(255,59,48,0.2);
+            display: none; align-items: center; justify-content: center;
+        }
+        .wave-anim { 
+            position: absolute; inset: 0; border-radius: 50%; border: 2px solid var(--accent);
+            animation: ripple 1.5s infinite; 
+        }
+        @keyframes ripple { 
+            0% { transform: scale(1); opacity: 1; } 
+            100% { transform: scale(2); opacity: 0; } 
+        }
     </style>
 </head>
 <body>
@@ -38,8 +64,8 @@
 <div id="slider">
     <div class="page" style="padding: 60px 25px;">
         <h1 id="u-name" onclick="editName()" style="font-size: 42px; font-weight: 900; margin:0;">Ciao!</h1>
-        <div style="background: #111; padding: 25px; border-radius: 25px; margin-top: 35px; border: 1px solid #222;">
-            <input type="text" id="place-name" placeholder="Nome di questo posto..." style="width:100%; padding:18px; border-radius:15px; border:none; background:#1c1c1e; color:#fff; font-size:16px; margin-bottom:12px;">
+        <div style="background: #111; padding: 25px; border-radius: 25px; margin-top: 35px;">
+            <input type="text" id="place-name" placeholder="Nome di questo posto..." style="width:100%; padding:18px; border-radius:15px; border:none; background:#222; color:#fff; font-size:16px; margin-bottom:12px;">
             <button onclick="genQR()" style="width:100%; padding:18px; border-radius:15px; background:#fff; font-weight:900; color:#000; border:none;">GENERA QR</button>
             <div id="qrcode" style="margin-top:20px; display:none; justify-content:center; background:#fff; padding:15px; border-radius:15px;"></div>
         </div>
@@ -48,14 +74,14 @@
 </div>
 
 <div class="nav">
-    <button onclick="goTo(0)" style="background:none; border:none; color:#fff; font-size:24px; opacity:0.6;">👤</button>
+    <button onclick="goTo(0)" class="nav-btn">👤</button>
     <button class="add" onclick="openCam()">+</button>
-    <button onclick="goTo(1)" style="background:none; border:none; color:#fff; font-size:24px; opacity:0.6;">🏠</button>
+    <button onclick="goTo(1)" class="nav-btn">🏠</button>
 </div>
 
 <div id="cam-modal">
-    <div id="rec-notif">● REGISTRAZIONE</div>
     <video id="video" autoplay playsinline muted></video>
+    <div id="mic-wave"><div class="wave-anim"></div>🎤</div>
     <div style="position:absolute; bottom:60px; width:100%; display:flex; justify-content:space-around; align-items:center;">
         <button onclick="closeCam()" style="color:#fff; background:none; border:none; font-size:35px;">✕</button>
         <button onclick="capture()" id="snap-btn" style="width:80px; height:80px; border-radius:50%; border:6px solid #fff; background:none;"></button>
@@ -86,113 +112,74 @@
                 return `
                 <div class="spot-card">
                     <img src="${t.foto_url}" class="spot-img">
+                    <div class="overlay"></div>
+                    ${t.audio_url ? `
+                        <div class="play-overlay" onclick="playAudio('${t.audio_url}', this, 'b-${i}', 'c-${i}')">
+                            <div class="play-icon"></div>
+                        </div>
+                    ` : ''}
                     <div class="info">
                         <div class="date">${date}</div>
-                        <h3 style="margin:0 0 10px 0; font-size:30px; font-weight:900;">@${t.nome_posto}</h3>
-                        ${t.audio_url ? `
-                            <button class="btn-audio" onclick="playAudio('${t.audio_url}', this, 'b-${i}', 'c-${i}')">ASCOLTA</button>
-                            <div class="p-cont" id="c-${i}"><div class="p-bar" id="b-${i}"></div></div>
-                        ` : ''}
+                        <h3 class="place-title">@${t.nome_posto}</h3>
+                        <div class="p-cont" id="c-${i}" style="display:none"><div class="p-bar" id="b-${i}"></div></div>
                     </div>
                 </div>
             `}).join('');
         }
     }
 
-    // FUNZIONE AUDIO AGGIORNATA PER IPHONE
-    function playAudio(url, btn, barId, contId) {
-        // Creiamo l'elemento audio immediatamente al click
+    function playAudio(url, playBtn, barId, contId) {
         if (!window.currentAudio) window.currentAudio = new Audio();
-        
         const audio = window.currentAudio;
         audio.src = url;
-        audio.preload = "auto";
-        
         const bar = document.getElementById(barId);
         const cont = document.getElementById(contId);
         
-        btn.innerText = "CARICAMENTO...";
-        
-        audio.onplay = () => {
-            btn.innerText = "IN RIPRODUZIONE";
-            cont.style.display = 'block';
-        };
+        cont.style.display = 'block';
+        playBtn.style.opacity = "0.5";
 
-        audio.ontimeupdate = () => {
-            if (audio.duration) {
-                bar.style.width = (audio.currentTime / audio.duration * 100) + "%";
-            }
-        };
-
-        // Il segreto: chiamare play() immediatamente dentro l'evento click
-        const playPromise = audio.play();
-
-        if (playPromise !== undefined) {
-            playPromise.then(() => {
-                // Audio partito!
-            }).catch(error => {
-                console.log("Blocco Safari: richiede secondo tocco");
-                btn.innerText = "TOCCA DI NUOVO PER SBLOCCARE";
-                cont.style.display = 'none';
-            });
-        }
-
-        audio.onended = () => {
-            btn.innerText = "ASCOLTA";
-            cont.style.display = 'none';
-            bar.style.width = "0%";
-        };
+        audio.ontimeupdate = () => { if (audio.duration) bar.style.width = (audio.currentTime / audio.duration * 100) + "%"; };
+        audio.play().catch(() => { alert("Tocca di nuovo per riprodurre"); });
+        audio.onended = () => { cont.style.display = 'none'; bar.style.width = "0%"; playBtn.style.opacity = "1"; };
     }
 
     async function toggleRec() {
         const btn = document.getElementById('rec-btn');
-        const notif = document.getElementById('rec-notif');
+        const wave = document.getElementById('mic-wave');
         if(!mediaRecorder || mediaRecorder.state === 'inactive') {
-            try {
-                const stream = await navigator.mediaDevices.getUserMedia({audio: true});
-                const mime = MediaRecorder.isTypeSupported('audio/mp4') ? 'audio/mp4' : 'audio/webm';
-                mediaRecorder = new MediaRecorder(stream, {mimeType: mime});
-                chunks = [];
-                mediaRecorder.ondataavailable = e => chunks.push(e.data);
-                mediaRecorder.onstop = () => {
-                    const blob = new Blob(chunks, {type: mime});
-                    const reader = new FileReader();
-                    reader.readAsDataURL(blob);
-                    reader.onloadend = () => { 
-                        audioBase64 = reader.result; 
-                        btn.style.background = "#4cd964"; 
-                        btn.innerText = "✅";
-                    };
-                    notif.style.display = 'none';
-                    stream.getTracks().forEach(t => t.stop());
-                };
-                mediaRecorder.start();
-                btn.style.background = "red"; btn.innerText = "⏹"; notif.style.display = 'block';
-            } catch(e) { alert("Attiva il microfono nelle impostazioni!"); }
+            const stream = await navigator.mediaDevices.getUserMedia({audio: true});
+            const mime = MediaRecorder.isTypeSupported('audio/mp4') ? 'audio/mp4' : 'audio/webm';
+            mediaRecorder = new MediaRecorder(stream, {mimeType: mime});
+            chunks = [];
+            mediaRecorder.ondataavailable = e => chunks.push(e.data);
+            mediaRecorder.onstop = () => {
+                const blob = new Blob(chunks, {type: mime});
+                const reader = new FileReader();
+                reader.readAsDataURL(blob);
+                reader.onloadend = () => { audioBase64 = reader.result; btn.style.background = "#4cd964"; btn.innerText = "✅"; };
+                wave.style.display = 'none';
+                stream.getTracks().forEach(t => t.stop());
+            };
+            mediaRecorder.start();
+            btn.style.background = "red"; btn.innerText = "⏹"; wave.style.display = 'flex';
         } else { mediaRecorder.stop(); }
     }
 
     async function capture() {
-        const btn = document.getElementById('snap-btn');
-        btn.style.borderColor = "#4cd964";
+        const snap = document.getElementById('snap-btn');
+        snap.style.background = "white";
         const v = document.getElementById('video');
         const c = document.getElementById('canvas');
         c.width = 640; c.height = 480;
         c.getContext('2d').drawImage(v, 0, 0, 640, 480);
         const foto = c.toDataURL('image/jpeg', 0.5);
-        
-        // Messaggio di attesa
-        btn.innerText = "INVIO...";
-        
         await sb.from('spots').insert([{ id_tag: idTag, nome_posto: profile.name, foto_url: foto, audio_url: audioBase64 }]);
         location.reload();
     }
 
     function openCam() { 
         document.getElementById('cam-modal').style.display = 'block'; 
-        navigator.mediaDevices.getUserMedia({video: {facingMode:'environment'}})
-            .then(s => document.getElementById('video').srcObject = s)
-            .catch(e => alert("Attiva la fotocamera!"));
+        navigator.mediaDevices.getUserMedia({video: {facingMode:'environment'}}).then(s => document.getElementById('video').srcObject = s);
     }
     function closeCam() { 
         const v = document.getElementById('video');
@@ -204,9 +191,10 @@
     function genQR() { 
         const n = document.getElementById('place-name').value; 
         if(!n) return alert("Scrivi un nome!");
+        const url = window.location.origin + window.location.pathname + "?id=" + encodeURIComponent(n);
         const qr = document.getElementById('qrcode');
         qr.style.display = 'flex'; qr.innerHTML = "";
-        new QRCode(qr, {text: window.location.origin + window.location.pathname + "?id=" + encodeURIComponent(n), width: 150, height: 150});
+        new QRCode(qr, {text: url, width: 150, height: 150});
     }
 </script>
 </body>
