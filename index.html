@@ -12,92 +12,89 @@
         body { margin: 0; background: #000; color: #fff; height: 100dvh; overflow: hidden; }
         
         #slider { display: flex; width: 200vw; height: 100dvh; transition: 0.5s cubic-bezier(0.2, 1, 0.2, 1); }
-        .page { width: 100vw; height: 100dvh; position: relative; overflow-y: auto; padding-bottom: 110px; }
+        .page { width: 100vw; height: 100dvh; position: relative; overflow-y: auto; padding-bottom: 120px; }
 
-        /* Feed Estetica Immagini 1,2,3 - NON SCHERMO INTERO */
+        /* FIX POSIZIONAMENTO PROFILO */
+        #profile-page { padding: 100px 25px 40px 25px; } /* Aumentato lo spazio in alto */
+
+        /* Feed Estetica Immagini 1,2,3 - Foto non a tutto schermo */
         .spot-card { 
             height: 100dvh; scroll-snap-align: start; position: relative; background: #000; 
-            display: flex; align-items: center; justify-content: center; /* Centra la foto */
-            padding: 70px 0 160px 0; /* Spazi neri: top e bottom (per nav) */
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            padding: 20px 0 140px 0;
         }
         .spot-img-container {
-            width: 100%; height: 100%; /* La foto occupa solo lo spazio tra i padding */
-            position: relative; overflow: hidden; border-radius: 10px; /* Bordo leggermente arrotondato opzionale */
+            width: 92%; height: 65%; /* Foto leggermente più piccola per lasciare spazio nero */
+            position: relative; overflow: hidden; border-radius: 20px; border: 1px solid #222;
         }
         .spot-img { width: 100%; height: 100%; object-fit: cover; }
         
-        .overlay { position: absolute; inset: 0; background: linear-gradient(to bottom, transparent 60%, rgba(0,0,0,0.8)); pointer-events: none; }
+        .overlay { position: absolute; inset: 0; background: linear-gradient(to bottom, transparent 60%, rgba(0,0,0,0.6)); pointer-events: none; }
         
         /* Play Overlay Centrale */
         .play-overlay { 
             position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
-            width: 90px; height: 90px; background: rgba(255,255,255,0.2); 
-            backdrop-filter: blur(10px); border-radius: 50%; 
+            width: 85px; height: 85px; background: rgba(255,255,255,0.15); 
+            backdrop-filter: blur(12px); border-radius: 50%; 
             display: flex; align-items: center; justify-content: center;
-            border: 1px solid rgba(255,255,255,0.3); z-index: 5;
+            border: 1px solid rgba(255,255,255,0.2); z-index: 5;
         }
         .play-icon { width: 0; height: 0; border-top: 15px solid transparent; border-bottom: 15px solid transparent; border-left: 25px solid white; margin-left: 5px; }
 
-        /* Scritte: posizionate nello spazio nero IN BASSO */
-        .info { 
-            position: absolute; bottom: 80px; /* Alzata rispetto alla nav per stare nel nero */
-            left: 25px; right: 25px; z-index: 10; 
-        }
-        .date { font-size: 12px; color: rgba(255,255,255,0.6); font-weight: 600; text-transform: uppercase; letter-spacing: 1px; }
-        .place-title { margin: 5px 0; font-size: 28px; font-weight: 900; } /* Leggermente più piccola */
+        /* Info nello spazio nero */
+        .info { width: 92%; margin-top: 20px; text-align: left; }
+        .date { font-size: 11px; color: rgba(255,255,255,0.5); font-weight: 700; text-transform: uppercase; letter-spacing: 1.5px; }
+        .place-title { margin: 5px 0; font-size: 26px; font-weight: 900; letter-spacing: -0.5px; }
         
-        .p-cont { width: 100%; height: 4px; background: rgba(255,255,255,0.2); border-radius: 2px; margin-top: 10px; overflow: hidden; }
-        .p-bar { height: 100%; background: #fff; width: 0%; transition: width 0.1s linear; }
+        .p-cont { width: 100%; height: 3px; background: rgba(255,255,255,0.1); border-radius: 2px; margin-top: 10px; overflow: hidden; }
+        .p-bar { height: 100%; background: #fff; width: 0%; }
 
-        /* Navigazione ICone Minimali Immagine 1 e 2 */
-        .nav { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); display: flex; gap: 40px; z-index: 1000; background: rgba(30,30,30,0.9); padding: 15px 40px; border-radius: 50px; backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.1); align-items: center; }
-        .nav-btn { background: none; border: none; color: #fff; opacity: 0.6; padding: 0; display: flex; align-items: center; justify-content: center; width: 30px; height: 30px; }
-        .add { width: 65px; height: 65px; background: var(--accent); border-radius: 50%; border: none; font-size: 35px; color: #fff; margin-top: -10px; box-shadow: 0 4px 15px rgba(255,59,48,0.3); }
+        /* Navigazione Pulita */
+        .nav { position: fixed; bottom: 35px; left: 50%; transform: translateX(-50%); display: flex; gap: 40px; z-index: 1000; background: rgba(25,25,25,0.85); padding: 12px 35px; border-radius: 50px; backdrop-filter: blur(15px); border: 1px solid rgba(255,255,255,0.08); align-items: center; }
+        .nav-btn { background: none; border: none; color: #fff; opacity: 0.5; display: flex; align-items: center; justify-content: center; width: 32px; height: 32px; }
+        .nav-btn.active { opacity: 1; }
+        .add { width: 60px; height: 60px; background: var(--accent); border-radius: 50%; border: none; display: flex; align-items: center; justify-content: center; box-shadow: 0 8px 20px rgba(255,59,48,0.3); }
 
-        /* Icone SVG Sostitutive */
-        .svg-icon { width: 24px; height: 24px; fill: white; }
+        .svg-icon { width: 24px; height: 24px; fill: currentColor; }
 
-        /* Camera & Mic Animazione Immagine 2 */
+        /* Camera & Mic Animazione */
         #cam-modal { position: fixed; inset: 0; background: #000; z-index: 2000; display: none; }
         video { width: 100%; height: 100%; object-fit: cover; }
         
         #mic-wave { 
-            position: absolute; bottom: 160px; left: 50%; transform: translateX(-50%);
-            width: 80px; height: 80px; border-radius: 50%; background: rgba(255,59,48,0.2);
-            display: none; align-items: center; justify-content: center;
+            position: absolute; bottom: 180px; left: 50%; transform: translateX(-50%);
+            width: 70px; height: 70px; border-radius: 50%; background: rgba(255,59,48,0.3);
+            display: none; align-items: center; justify-content: center; z-index: 2001;
         }
-        .wave-anim { 
-            position: absolute; inset: 0; border-radius: 50%; border: 2px solid var(--accent);
-            animation: ripple 1.5s infinite; 
-        }
-        @keyframes ripple { 
-            0% { transform: scale(1); opacity: 1; } 
-            100% { transform: scale(2); opacity: 0; } 
-        }
+        .wave-anim { position: absolute; inset: 0; border-radius: 50%; border: 2px solid var(--accent); animation: ripple 1.5s infinite; }
+        @keyframes ripple { 0% { transform: scale(1); opacity: 1; } 100% { transform: scale(2.2); opacity: 0; } }
     </style>
 </head>
 <body>
 
 <div id="slider">
-    <div class="page" style="padding: 60px 25px;">
-        <h1 id="u-name" onclick="editName()" style="font-size: 42px; font-weight: 900; margin:0;">Ciao!</h1>
-        <div style="background: #111; padding: 25px; border-radius: 25px; margin-top: 35px;">
-            <input type="text" id="place-name" placeholder="Nome di questo posto..." style="width:100%; padding:18px; border-radius:15px; border:none; background:#222; color:#fff; font-size:16px; margin-bottom:12px;">
+    <div class="page" id="profile-page">
+        <h1 id="u-name" onclick="editName()" style="font-size: 42px; font-weight: 900; margin:0; letter-spacing: -1.5px;">Ciao!</h1>
+        <p style="color: rgba(255,255,255,0.4); margin-top: 5px;">Tocca il nome per cambiarlo</p>
+        
+        <div style="background: #111; padding: 25px; border-radius: 30px; margin-top: 40px; border: 1px solid #222;">
+            <input type="text" id="place-name" placeholder="Nome di questo posto..." style="width:100%; padding:18px; border-radius:15px; border:none; background:#1c1c1e; color:#fff; font-size:16px; margin-bottom:12px;">
             <button onclick="genQR()" style="width:100%; padding:18px; border-radius:15px; background:#fff; font-weight:900; color:#000; border:none;">GENERA QR</button>
             <div id="qrcode" style="margin-top:20px; display:none; justify-content:center; background:#fff; padding:15px; border-radius:15px;"></div>
         </div>
     </div>
+
     <div class="page" id="gallery-feed" style="scroll-snap-type: y mandatory;"></div>
 </div>
 
 <div class="nav">
-    <button onclick="goTo(0)" class="nav-btn">
+    <button onclick="goTo(0)" class="nav-btn" id="btn-prof">
         <svg class="svg-icon" viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
     </button>
-    <button class="add" onclick="openCam()" style="margin-top: -10px;">
-        <svg class="svg-icon" viewBox="0 0 24 24" style="fill:none; stroke:white; stroke-width:3; width:30px; height:30px;"><path d="M12 5v14M5 12h14"/></svg>
+    <button class="add" onclick="openCam()">
+        <svg viewBox="0 0 24 24" style="width:30px; height:30px; stroke:white; stroke-width:3; fill:none;"><path d="M12 5v14M5 12h14"/></svg>
     </button>
-    <button onclick="goTo(1)" class="nav-btn">
+    <button onclick="goTo(1)" class="nav-btn" id="btn-home">
         <svg class="svg-icon" viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
     </button>
 </div>
@@ -124,7 +121,7 @@
     let mediaRecorder, chunks = [], audioBase64 = null;
 
     document.getElementById('u-name').innerText = "Ciao, " + profile.name;
-    if(idTag) { loadFeed(); goTo(1); }
+    if(idTag) { loadFeed(); goTo(1); } else { document.getElementById('btn-prof').classList.add('active'); }
 
     async function loadFeed() {
         const { data } = await sb.from('spots').select('*').eq('id_tag', idTag).order('created_at', {ascending: false});
@@ -146,7 +143,7 @@
                     <div class="info">
                         <div class="date">${date}</div>
                         <h3 class="place-title">@${t.nome_posto}</h3>
-                        <div class="p-cont" id="c-${i}" style="display:none"><div class="p-bar" id="b-${i}"></div></div>
+                        <div class="p-cont" id="c-${i}" style="visibility:hidden"><div class="p-bar" id="b-${i}"></div></div>
                     </div>
                 </div>
             `}).join('');
@@ -160,12 +157,12 @@
         const bar = document.getElementById(barId);
         const cont = document.getElementById(contId);
         
-        cont.style.display = 'block';
-        playBtn.style.opacity = "0.5";
+        cont.style.visibility = 'visible';
+        playBtn.style.opacity = "0.3";
 
         audio.ontimeupdate = () => { if (audio.duration) bar.style.width = (audio.currentTime / audio.duration * 100) + "%"; };
-        audio.play().catch(() => { alert("Tocca di nuovo per riprodurre"); });
-        audio.onended = () => { cont.style.display = 'none'; bar.style.width = "0%"; playBtn.style.opacity = "1"; };
+        audio.play().catch(() => { alert("Tocca di nuovo!"); });
+        audio.onended = () => { cont.style.visibility = 'hidden'; bar.style.width = "0%"; playBtn.style.opacity = "1"; };
     }
 
     async function toggleRec() {
@@ -191,8 +188,6 @@
     }
 
     async function capture() {
-        const snap = document.getElementById('snap-btn');
-        snap.style.background = "white";
         const v = document.getElementById('video');
         const c = document.getElementById('canvas');
         c.width = 640; c.height = 480;
@@ -211,7 +206,11 @@
         if(v.srcObject) v.srcObject.getTracks().forEach(t => t.stop());
         document.getElementById('cam-modal').style.display = 'none'; 
     }
-    function goTo(p) { document.getElementById('slider').style.transform = `translateX(-${p * 100}vw)`; }
+    function goTo(p) { 
+        document.getElementById('slider').style.transform = `translateX(-${p * 100}vw)`;
+        document.getElementById('btn-prof').classList.toggle('active', p===0);
+        document.getElementById('btn-home').classList.toggle('active', p===1);
+    }
     function editName() { const n = prompt("Tuo nome:"); if(n) { profile.name = n; localStorage.setItem('tracce_v4', JSON.stringify(profile)); location.reload(); }}
     function genQR() { 
         const n = document.getElementById('place-name').value; 
