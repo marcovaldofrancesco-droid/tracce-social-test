@@ -3,87 +3,73 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>TRACCE PRO</title>
+    <title>TRACCE Dark Minimal</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <style>
-        :root { --accent: #ff3b30; }
-        * { box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, sans-serif; -webkit-tap-highlight-color: transparent; }
-        body { margin: 0; background: #000; color: #fff; height: 100dvh; overflow: hidden; }
+        :root { --accent: #ff3b30; --bg: #000; --text: #fff; --sub-text: rgba(255,255,255,0.6); --glass: rgba(255,255,255,0.1); }
+        * { box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; -webkit-tap-highlight-color: transparent; }
+        body { margin: 0; background: var(--bg); color: var(--text); height: 100dvh; overflow: hidden; }
         
+        /* Slider Pagine */
         #slider { display: flex; width: 200vw; height: 100dvh; transition: 0.5s cubic-bezier(0.2, 1, 0.2, 1); }
-        .page { width: 100vw; height: 100dvh; position: relative; overflow-y: auto; padding-bottom: 120px; }
+        .page { width: 100vw; height: 100dvh; position: relative; overflow-y: auto; padding-bottom: 110px; }
 
-        /* FIX POSIZIONAMENTO PROFILO */
-        #profile-page { padding: 100px 25px 40px 25px; } /* Aumentato lo spazio in alto */
-
-        /* Feed Estetica Immagini 1,2,3 - Foto non a tutto schermo */
-        .spot-card { 
-            height: 100dvh; scroll-snap-align: start; position: relative; background: #000; 
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
-            padding: 20px 0 140px 0;
-        }
-        .spot-img-container {
-            width: 92%; height: 65%; /* Foto leggermente più piccola per lasciare spazio nero */
-            position: relative; overflow: hidden; border-radius: 20px; border: 1px solid #222;
-        }
+        /* Estetica Feed Dark Minimal (Simile a Immagine 1) */
+        .spot-card { height: 100dvh; scroll-snap-align: start; position: relative; background: var(--bg); border-bottom: 1px solid #111; }
         .spot-img { width: 100%; height: 100%; object-fit: cover; }
         
-        .overlay { position: absolute; inset: 0; background: linear-gradient(to bottom, transparent 60%, rgba(0,0,0,0.6)); pointer-events: none; }
+        /* Sovrapposizione scura per leggibilità testi in basso */
+        .overlay { position: absolute; inset: 0; background: linear-gradient(to bottom, transparent 60%, rgba(0,0,0,0.7)); pointer-events: none; }
         
-        /* Play Overlay Centrale */
+        /* Play Button Centrale Grande */
         .play-overlay { 
             position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
-            width: 85px; height: 85px; background: rgba(255,255,255,0.15); 
-            backdrop-filter: blur(12px); border-radius: 50%; 
+            width: 80px; height: 80px; background: rgba(255,255,255,0.15); 
+            backdrop-filter: blur(10px); border-radius: 50%; 
             display: flex; align-items: center; justify-content: center;
-            border: 1px solid rgba(255,255,255,0.2); z-index: 5;
+            border: 1px solid rgba(255,255,255,0.2); cursor: pointer; z-index: 10;
         }
         .play-icon { width: 0; height: 0; border-top: 15px solid transparent; border-bottom: 15px solid transparent; border-left: 25px solid white; margin-left: 5px; }
 
-        /* Info nello spazio nero */
-        .info { width: 92%; margin-top: 20px; text-align: left; }
-        .date { font-size: 11px; color: rgba(255,255,255,0.5); font-weight: 700; text-transform: uppercase; letter-spacing: 1.5px; }
-        .place-title { margin: 5px 0; font-size: 26px; font-weight: 900; letter-spacing: -0.5px; }
+        /* Blocco Info in Basso (Data e Posto) */
+        .info { position: absolute; bottom: 130px; left: 25px; right: 25px; z-index: 10; }
+        .date { font-size: 11px; color: var(--sub-text); font-weight: 600; text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 5px; }
+        .place-title { margin: 0; font-size: 30px; font-weight: 900; letter-spacing: -1px; }
         
-        .p-cont { width: 100%; height: 3px; background: rgba(255,255,255,0.1); border-radius: 2px; margin-top: 10px; overflow: hidden; }
-        .p-bar { height: 100%; background: #fff; width: 0%; }
+        /* Barra Avanzamento Audio Sottile */
+        .p-cont { width: 100%; height: 3px; background: rgba(255,255,255,0.1); border-radius: 2px; margin-top: 15px; display: none; overflow: hidden; }
+        .p-bar { height: 100%; background: #fff; width: 0%; transition: width 0.1s linear; }
 
-        /* Navigazione Pulita */
-        .nav { position: fixed; bottom: 35px; left: 50%; transform: translateX(-50%); display: flex; gap: 40px; z-index: 1000; background: rgba(25,25,25,0.85); padding: 12px 35px; border-radius: 50px; backdrop-filter: blur(15px); border: 1px solid rgba(255,255,255,0.08); align-items: center; }
-        .nav-btn { background: none; border: none; color: #fff; opacity: 0.5; display: flex; align-items: center; justify-content: center; width: 32px; height: 32px; }
+        /* Navigazione Dark Minimal (Simile a Immagine 1) */
+        .nav { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); display: flex; gap: 35px; z-index: 1000; background: rgba(25,25,25,0.9); padding: 12px 35px; border-radius: 50px; backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.08); align-items: center; }
+        
+        .nav-btn { background: none; border: none; color: #fff; opacity: 0.5; display: flex; align-items: center; justify-content: center; width: 32px; height: 32px; padding: 0; }
         .nav-btn.active { opacity: 1; }
-        .add { width: 60px; height: 60px; background: var(--accent); border-radius: 50%; border: none; display: flex; align-items: center; justify-content: center; box-shadow: 0 8px 20px rgba(255,59,48,0.3); }
+        
+        /* Il "+" Centrale nel cerchio rosso */
+        .add { width: 60px; height: 60px; background: var(--accent); border-radius: 50%; border: none; font-size: 35px; color: #fff; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 15px rgba(255,59,48,0.3); }
 
-        .svg-icon { width: 24px; height: 24px; fill: currentColor; }
+        /* Icone SVG per Nav */
+        .svg-icon { width: 22px; height: 22px; fill: currentColor; }
 
-        /* Camera & Mic Animazione */
+        /* Camera Modal Minimal */
         #cam-modal { position: fixed; inset: 0; background: #000; z-index: 2000; display: none; }
         video { width: 100%; height: 100%; object-fit: cover; }
-        
-        #mic-wave { 
-            position: absolute; bottom: 180px; left: 50%; transform: translateX(-50%);
-            width: 70px; height: 70px; border-radius: 50%; background: rgba(255,59,48,0.3);
-            display: none; align-items: center; justify-content: center; z-index: 2001;
-        }
-        .wave-anim { position: absolute; inset: 0; border-radius: 50%; border: 2px solid var(--accent); animation: ripple 1.5s infinite; }
-        @keyframes ripple { 0% { transform: scale(1); opacity: 1; } 100% { transform: scale(2.2); opacity: 0; } }
+        #rec-notif { position: absolute; top: 50px; left: 50%; transform: translateX(-50%); color: var(--accent); font-weight: 800; display: none; text-shadow: 0 0 10px #000; }
     </style>
 </head>
 <body>
 
 <div id="slider">
-    <div class="page" id="profile-page">
-        <h1 id="u-name" onclick="editName()" style="font-size: 42px; font-weight: 900; margin:0; letter-spacing: -1.5px;">Ciao!</h1>
-        <p style="color: rgba(255,255,255,0.4); margin-top: 5px;">Tocca il nome per cambiarlo</p>
-        
-        <div style="background: #111; padding: 25px; border-radius: 30px; margin-top: 40px; border: 1px solid #222;">
-            <input type="text" id="place-name" placeholder="Nome di questo posto..." style="width:100%; padding:18px; border-radius:15px; border:none; background:#1c1c1e; color:#fff; font-size:16px; margin-bottom:12px;">
-            <button onclick="genQR()" style="width:100%; padding:18px; border-radius:15px; background:#fff; font-weight:900; color:#000; border:none;">GENERA QR</button>
+    <div class="page" style="padding: 60px 25px;">
+        <h1 id="u-name" onclick="editName()" style="font-size: 40px; font-weight: 900; margin:0; letter-spacing: -1px;">Ciao!</h1>
+        <div style="background: #111; padding: 20px; border-radius: 20px; margin-top: 30px; border: 1px solid #222;">
+            <input type="text" id="place-name" placeholder="Nome di questo posto..." style="width:100%; padding:18px; border-radius:12px; border:none; background:#1c1c1e; color:#fff; font-size:16px; margin-bottom:12px;">
+            <button onclick="genQR()" style="width:100%; padding:18px; border-radius:12px; background:#fff; font-weight:900; color:#000; border:none;">GENERA QR</button>
             <div id="qrcode" style="margin-top:20px; display:none; justify-content:center; background:#fff; padding:15px; border-radius:15px;"></div>
         </div>
     </div>
-
     <div class="page" id="gallery-feed" style="scroll-snap-type: y mandatory;"></div>
 </div>
 
@@ -91,17 +77,15 @@
     <button onclick="goTo(0)" class="nav-btn" id="btn-prof">
         <svg class="svg-icon" viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
     </button>
-    <button class="add" onclick="openCam()">
-        <svg viewBox="0 0 24 24" style="width:30px; height:30px; stroke:white; stroke-width:3; fill:none;"><path d="M12 5v14M5 12h14"/></svg>
-    </button>
+    <button class="add" onclick="openCam()">+</button>
     <button onclick="goTo(1)" class="nav-btn" id="btn-home">
         <svg class="svg-icon" viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
     </button>
 </div>
 
 <div id="cam-modal">
+    <div id="rec-notif">● REGISTRAZIONE</div>
     <video id="video" autoplay playsinline muted></video>
-    <div id="mic-wave"><div class="wave-anim"></div>🎤</div>
     <div style="position:absolute; bottom:60px; width:100%; display:flex; justify-content:space-around; align-items:center;">
         <button onclick="closeCam()" style="color:#fff; background:none; border:none; font-size:35px;">✕</button>
         <button onclick="capture()" id="snap-btn" style="width:80px; height:80px; border-radius:50%; border:6px solid #fff; background:none;"></button>
@@ -131,63 +115,81 @@
                 const date = new Date(t.created_at).toLocaleString('it-IT', {day:'2-digit', month:'short', hour:'2-digit', minute:'2-digit'});
                 return `
                 <div class="spot-card">
-                    <div class="spot-img-container">
-                        <img src="${t.foto_url}" class="spot-img">
-                        <div class="overlay"></div>
-                        ${t.audio_url ? `
-                            <div class="play-overlay" onclick="playAudio('${t.audio_url}', this, 'b-${i}', 'c-${i}')">
-                                <div class="play-icon"></div>
-                            </div>
-                        ` : ''}
-                    </div>
+                    <img src="${t.foto_url}" class="spot-img">
+                    <div class="overlay"></div>
+                    ${t.audio_url ? `
+                        <div class="play-overlay" onclick="playAudio('${t.audio_url}', this, 'b-${i}', 'c-${i}')">
+                            <div class="play-icon"></div>
+                        </div>
+                    ` : ''}
                     <div class="info">
                         <div class="date">${date}</div>
                         <h3 class="place-title">@${t.nome_posto}</h3>
-                        <div class="p-cont" id="c-${i}" style="visibility:hidden"><div class="p-bar" id="b-${i}"></div></div>
+                        <div class="p-cont" id="c-${i}"><div class="p-bar" id="b-${i}"></div></div>
                     </div>
                 </div>
             `}).join('');
         }
     }
 
+    // FUNZIONE AUDIO AGGIORNATA PER IPHONE CON OVERLAY GRANDE
     function playAudio(url, playBtn, barId, contId) {
         if (!window.currentAudio) window.currentAudio = new Audio();
+        
         const audio = window.currentAudio;
         audio.src = url;
+        audio.preload = "auto";
+        
         const bar = document.getElementById(barId);
         const cont = document.getElementById(contId);
         
-        cont.style.visibility = 'visible';
-        playBtn.style.opacity = "0.3";
+        // Animazione del pulsante al click
+        playBtn.style.background = "rgba(255,255,255,0.05)";
+        cont.style.display = 'block';
 
         audio.ontimeupdate = () => { if (audio.duration) bar.style.width = (audio.currentTime / audio.duration * 100) + "%"; };
-        audio.play().catch(() => { alert("Tocca di nuovo!"); });
-        audio.onended = () => { cont.style.visibility = 'hidden'; bar.style.width = "0%"; playBtn.style.opacity = "1"; };
+
+        audio.play().catch(error => {
+            console.log("Blocco Safari: richiede secondo tocco");
+            alert("Tocca di nuovo per sbloccare l'audio");
+            playBtn.style.background = "rgba(255,255,255,0.2)";
+        });
+
+        audio.onended = () => { cont.style.display = 'none'; bar.style.width = "0%"; playBtn.style.background = "rgba(255,255,255,0.15)"; };
     }
 
     async function toggleRec() {
         const btn = document.getElementById('rec-btn');
-        const wave = document.getElementById('mic-wave');
+        const notif = document.getElementById('rec-notif');
         if(!mediaRecorder || mediaRecorder.state === 'inactive') {
-            const stream = await navigator.mediaDevices.getUserMedia({audio: true});
-            const mime = MediaRecorder.isTypeSupported('audio/mp4') ? 'audio/mp4' : 'audio/webm';
-            mediaRecorder = new MediaRecorder(stream, {mimeType: mime});
-            chunks = [];
-            mediaRecorder.ondataavailable = e => chunks.push(e.data);
-            mediaRecorder.onstop = () => {
-                const blob = new Blob(chunks, {type: mime});
-                const reader = new FileReader();
-                reader.readAsDataURL(blob);
-                reader.onloadend = () => { audioBase64 = reader.result; btn.style.background = "#4cd964"; btn.innerText = "✅"; };
-                wave.style.display = 'none';
-                stream.getTracks().forEach(t => t.stop());
-            };
-            mediaRecorder.start();
-            btn.style.background = "red"; btn.innerText = "⏹"; wave.style.display = 'flex';
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({audio: true});
+                const mime = MediaRecorder.isTypeSupported('audio/mp4') ? 'audio/mp4' : 'audio/webm';
+                mediaRecorder = new MediaRecorder(stream, {mimeType: mime});
+                chunks = [];
+                mediaRecorder.ondataavailable = e => chunks.push(e.data);
+                mediaRecorder.onstop = () => {
+                    const blob = new Blob(chunks, {type: mime});
+                    const reader = new FileReader();
+                    reader.readAsDataURL(blob);
+                    reader.onloadend = () => { 
+                        audioBase64 = reader.result; 
+                        btn.style.background = "#4cd964"; 
+                        btn.innerText = "✅";
+                    };
+                    notif.style.display = 'none';
+                    stream.getTracks().forEach(t => t.stop());
+                };
+                mediaRecorder.start();
+                btn.style.background = "red"; btn.innerText = "⏹"; notif.style.display = 'block';
+            } catch(e) { alert("Attiva il microfono!"); }
         } else { mediaRecorder.stop(); }
     }
 
     async function capture() {
+        const snap = document.getElementById('snap-btn');
+        snap.style.borderColor = "#4cd964";
+        snap.innerText = "...";
         const v = document.getElementById('video');
         const c = document.getElementById('canvas');
         c.width = 640; c.height = 480;
@@ -215,10 +217,9 @@
     function genQR() { 
         const n = document.getElementById('place-name').value; 
         if(!n) return alert("Scrivi un nome!");
-        const url = window.location.origin + window.location.pathname + "?id=" + encodeURIComponent(n);
         const qr = document.getElementById('qrcode');
         qr.style.display = 'flex'; qr.innerHTML = "";
-        new QRCode(qr, {text: url, width: 150, height: 150});
+        new QRCode(qr, {text: window.location.origin + window.location.pathname + "?id=" + encodeURIComponent(n), width: 150, height: 150});
     }
 </script>
 </body>
