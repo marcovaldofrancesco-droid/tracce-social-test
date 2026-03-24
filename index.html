@@ -14,37 +14,29 @@
         #slider { display: flex; width: 200vw; height: 100dvh; transition: 0.5s cubic-bezier(0.2, 1, 0.2, 1); }
         .page { width: 100vw; height: 100dvh; position: relative; overflow-y: auto; padding-bottom: 120px; }
 
+        /* HEADER POSIZIONE (Preso dal Link) */
+        .location-header {
+            position: absolute; top: 40px; left: 0; width: 100%; text-align: center; z-index: 20;
+            font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 2px; color: rgba(255,255,255,0.8);
+        }
+
         #profile-page { padding: 100px 25px 40px 25px; }
 
-        /* FIX QUALITÀ FOTO: Estetica Concept 1 & 2 */
         .spot-card { 
             height: 100dvh; scroll-snap-align: start; position: relative; background: #000; 
             display: flex; flex-direction: column; align-items: center; justify-content: center;
-            padding: 20px 0 140px 0;
+            padding: 40px 0 140px 0;
         }
         
         .spot-img-container {
-            width: 90%; 
-            height: 65%; /* Proporzioni da concept */
-            position: relative; 
-            overflow: hidden; 
-            border-radius: 24px; 
-            background: #111;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.5);
+            width: 90%; height: 62%; position: relative; overflow: hidden; border-radius: 24px; 
+            background: #111; box-shadow: 0 20px 40px rgba(0,0,0,0.5);
         }
         
-        /* IL SEGRETO PER LA QUALITÀ: object-fit cover */
-        .spot-img { 
-            width: 100%; 
-            height: 100%; 
-            object-fit: cover; /* Riempie lo spazio SENZA stretchare */
-            object-position: center;
-            display: block;
-        }
+        .spot-img { width: 100%; height: 100%; object-fit: cover; object-position: center; display: block; }
         
         .overlay { position: absolute; inset: 0; background: linear-gradient(to bottom, transparent 50%, rgba(0,0,0,0.5)); pointer-events: none; }
         
-        /* Play Overlay */
         .play-overlay { 
             position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
             width: 85px; height: 85px; background: rgba(255,255,255,0.15); 
@@ -54,7 +46,6 @@
         }
         .play-icon { width: 0; height: 0; border-top: 15px solid transparent; border-bottom: 15px solid transparent; border-left: 25px solid white; margin-left: 6px; }
 
-        /* Info nello spazio nero */
         .info { width: 90%; margin-top: 25px; }
         .date { font-size: 11px; color: rgba(255,255,255,0.4); font-weight: 700; text-transform: uppercase; letter-spacing: 2px; }
         .place-title { margin: 4px 0; font-size: 32px; font-weight: 900; letter-spacing: -1px; }
@@ -62,7 +53,6 @@
         .p-cont { width: 100%; height: 3px; background: rgba(255,255,255,0.1); border-radius: 2px; margin-top: 15px; overflow: hidden; }
         .p-bar { height: 100%; background: #fff; width: 0%; }
 
-        /* Navigazione Minimal */
         .nav { position: fixed; bottom: 35px; left: 50%; transform: translateX(-50%); display: flex; gap: 40px; z-index: 1000; background: rgba(20,20,20,0.8); padding: 12px 35px; border-radius: 50px; backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.1); align-items: center; }
         .nav-btn { background: none; border: none; color: #fff; opacity: 0.4; display: flex; align-items: center; justify-content: center; width: 32px; height: 32px; }
         .nav-btn.active { opacity: 1; }
@@ -81,7 +71,9 @@
             <div id="qrcode" style="margin-top:20px; display:none; justify-content:center; background:#fff; padding:15px; border-radius:15px;"></div>
         </div>
     </div>
-    <div class="page" id="gallery-feed" style="scroll-snap-type: y mandatory;"></div>
+    <div class="page" id="gallery-feed" style="scroll-snap-type: y mandatory;">
+        <div class="location-header" id="current-loc">CARICAMENTO...</div>
+    </div>
 </div>
 
 <div class="nav">
@@ -116,13 +108,22 @@
     let mediaRecorder, chunks = [], audioBase64 = null;
 
     document.getElementById('u-name').innerText = "Ciao, " + profile.name;
-    if(idTag) { loadFeed(); goTo(1); } else { document.getElementById('btn-prof').classList.add('active'); }
+
+    // Imposta il nome del posto in alto prendendolo dal link
+    if(idTag) { 
+        document.getElementById('current-loc').innerText = "📍 " + decodeURIComponent(idTag);
+        loadFeed(); 
+        goTo(1); 
+    } else { 
+        document.getElementById('current-loc').innerText = "NESSUNA POSIZIONE";
+        document.getElementById('btn-prof').classList.add('active'); 
+    }
 
     async function loadFeed() {
         const { data } = await sb.from('spots').select('*').eq('id_tag', idTag).order('created_at', {ascending: false});
         const feed = document.getElementById('gallery-feed');
         if(data) {
-            feed.innerHTML = data.map((t, i) => {
+            const items = data.map((t, i) => {
                 const date = new Date(t.created_at).toLocaleString('it-IT', {day:'2-digit', month:'short', hour:'2-digit', minute:'2-digit'});
                 return `
                 <div class="spot-card">
@@ -138,6 +139,8 @@
                     </div>
                 </div>`
             }).join('');
+            // Manteniamo l'header aggiungendo i contenuti sotto
+            feed.innerHTML = `<div class="location-header">📍 ${decodeURIComponent(idTag)}</div>` + items;
         }
     }
 
@@ -177,7 +180,7 @@
     async function capture() {
         const v = document.getElementById('video');
         const c = document.getElementById('canvas');
-        c.width = 1080; c.height = 1440; // Migliorata risoluzione capture
+        c.width = 1080; c.height = 1440;
         c.getContext('2d').drawImage(v, 0, 0, 1080, 1440);
         const foto = c.toDataURL('image/jpeg', 0.8);
         await sb.from('spots').insert([{ id_tag: idTag, nome_posto: profile.name, foto_url: foto, audio_url: audioBase64 }]);
