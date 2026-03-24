@@ -3,60 +3,63 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>TRACCE REALE</title>
+    <title>TRACCE PRO</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <style>
         :root { --accent: #ff3b30; }
-        * { box-sizing: border-box; font-family: -apple-system, sans-serif; }
+        * { box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, sans-serif; -webkit-tap-highlight-color: transparent; }
         body { margin: 0; background: #000; color: #fff; height: 100dvh; overflow: hidden; }
         
-        #main-slider { display: flex; width: 200vw; height: 100dvh; transition: 0.4s ease-out; }
-        .page { width: 100vw; height: 100dvh; position: relative; overflow-y: auto; padding-bottom: 100px; }
+        #slider { display: flex; width: 200vw; height: 100dvh; transition: 0.5s cubic-bezier(0.2, 1, 0.2, 1); }
+        .page { width: 100vw; height: 100dvh; position: relative; overflow-y: auto; padding-bottom: 110px; }
 
-        .spot-card { height: 100dvh; width: 100vw; scroll-snap-align: start; position: relative; background: #000; }
-        .spot-img { width: 100%; height: 100%; object-fit: cover; opacity: 0.9; }
-        .info { position: absolute; bottom: 140px; left: 20px; right: 20px; z-index: 10; }
+        .spot-card { height: 100dvh; scroll-snap-align: start; position: relative; background: #000; border-bottom: 1px solid #111; }
+        .spot-img { width: 100%; height: 100%; object-fit: cover; }
+        .info { position: absolute; bottom: 140px; left: 20px; right: 20px; z-index: 10; pointer-events: none; }
+        .info * { pointer-events: auto; }
         
-        .date-label { font-size: 11px; color: rgba(255,255,255,0.6); margin-bottom: 4px; font-weight: bold; }
-        .btn-audio { background: #fff; color: #000; border: none; padding: 15px 25px; border-radius: 30px; font-weight: bold; margin-top: 10px; }
+        .date { font-size: 12px; color: rgba(255,255,255,0.5); font-weight: 600; margin-bottom: 5px; }
+        .btn-audio { background: #fff; color: #000; border: none; padding: 16px 30px; border-radius: 40px; font-weight: 900; letter-spacing: -0.5px; box-shadow: 0 4px 20px rgba(0,0,0,0.5); }
         
-        .p-wrap { width: 100%; height: 4px; background: rgba(255,255,255,0.2); border-radius: 2px; margin-top: 10px; display: none; }
-        .p-fill { height: 100%; background: #fff; width: 0%; }
+        .p-cont { width: 100%; height: 5px; background: rgba(255,255,255,0.2); border-radius: 10px; margin-top: 15px; display: none; overflow: hidden; }
+        .p-bar { height: 100%; background: #fff; width: 0%; }
 
-        .nav { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); display: flex; gap: 30px; z-index: 1000; background: rgba(30,30,30,0.8); padding: 12px 25px; border-radius: 50px; backdrop-filter: blur(10px); }
-        .add { width: 60px; height: 60px; background: var(--accent); border-radius: 50%; border: none; font-size: 30px; color: #fff; }
+        .nav { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); display: flex; gap: 35px; z-index: 1000; background: rgba(20,20,20,0.9); padding: 12px 35px; border-radius: 50px; backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.1); }
+        .add { width: 65px; height: 65px; background: var(--accent); border-radius: 50%; border: none; font-size: 35px; color: #fff; box-shadow: 0 0 20px rgba(255,59,48,0.3); }
 
         #cam-modal { position: fixed; inset: 0; background: #000; z-index: 2000; display: none; }
-        #video { width: 100%; height: 100%; object-fit: cover; }
-        #rec-dot { position: absolute; top: 40px; left: 50%; transform: translateX(-50%); background: red; padding: 5px 15px; border-radius: 20px; font-size: 12px; font-weight: bold; display: none; }
+        video { width: 100%; height: 100%; object-fit: cover; }
+        #rec-notif { position: absolute; top: 50px; left: 50%; transform: translateX(-50%); color: var(--accent); font-weight: 900; display: none; text-shadow: 0 0 10px #000; }
     </style>
 </head>
 <body>
 
-<div id="main-slider">
-    <div class="page" style="padding: 50px 20px;">
-        <h1 id="u-name" onclick="editName()">Ciao!</h1>
-        <input type="text" id="place-name" placeholder="Nome Posto" style="width:100%; padding:15px; margin-top:20px; border-radius:10px; border:none; background:#222; color:#fff;">
-        <button onclick="genQR()" style="width:100%; padding:15px; margin-top:10px; border-radius:10px; background:#fff; font-weight:bold;">GENERA QR</button>
-        <div id="qrcode" style="margin-top:20px; display:none; justify-content:center; background:#fff; padding:10px;"></div>
+<div id="slider">
+    <div class="page" style="padding: 60px 25px;">
+        <h1 id="u-name" onclick="editName()" style="font-size: 42px; font-weight: 900; margin:0;">Ciao!</h1>
+        <div style="background: #111; padding: 25px; border-radius: 25px; margin-top: 35px; border: 1px solid #222;">
+            <input type="text" id="place-name" placeholder="Nome di questo posto..." style="width:100%; padding:18px; border-radius:15px; border:none; background:#1c1c1e; color:#fff; font-size:16px; margin-bottom:12px;">
+            <button onclick="genQR()" style="width:100%; padding:18px; border-radius:15px; background:#fff; font-weight:900; color:#000; border:none;">GENERA QR</button>
+            <div id="qrcode" style="margin-top:20px; display:none; justify-content:center; background:#fff; padding:15px; border-radius:15px;"></div>
+        </div>
     </div>
     <div class="page" id="gallery-feed" style="scroll-snap-type: y mandatory;"></div>
 </div>
 
 <div class="nav">
-    <button onclick="goTo(0)" style="background:none; border:none; color:#fff; font-size:20px;">👤</button>
+    <button onclick="goTo(0)" style="background:none; border:none; color:#fff; font-size:24px; opacity:0.6;">👤</button>
     <button class="add" onclick="openCam()">+</button>
-    <button onclick="goTo(1)" style="background:none; border:none; color:#fff; font-size:20px;">🏠</button>
+    <button onclick="goTo(1)" style="background:none; border:none; color:#fff; font-size:24px; opacity:0.6;">🏠</button>
 </div>
 
 <div id="cam-modal">
-    <div id="rec-dot">REGISTRAZIONE IN CORSO</div>
+    <div id="rec-notif">● REGISTRAZIONE</div>
     <video id="video" autoplay playsinline muted></video>
-    <div style="position:absolute; bottom:50px; width:100%; display:flex; justify-content:space-around; align-items:center;">
-        <button onclick="closeCam()" style="color:#fff; background:none; border:none; font-size:30px;">✕</button>
-        <button onclick="capture()" style="width:70px; height:70px; border-radius:50%; border:5px solid #fff; background:none;"></button>
-        <button id="rec-btn" onclick="toggleRec()" style="width:50px; height:50px; border-radius:50%; background:gray; color:#fff; border:none;">🎤</button>
+    <div style="position:absolute; bottom:60px; width:100%; display:flex; justify-content:space-around; align-items:center;">
+        <button onclick="closeCam()" style="color:#fff; background:none; border:none; font-size:35px;">✕</button>
+        <button onclick="capture()" id="snap-btn" style="width:80px; height:80px; border-radius:50%; border:6px solid #fff; background:none;"></button>
+        <button id="rec-btn" onclick="toggleRec()" style="width:55px; height:55px; border-radius:50%; background:rgba(255,255,255,0.2); color:#fff; border:none; font-size:24px;">🎤</button>
     </div>
 </div>
 
@@ -79,16 +82,16 @@
         const feed = document.getElementById('gallery-feed');
         if(data) {
             feed.innerHTML = data.map((t, i) => {
-                const dataOra = new Date(t.created_at).toLocaleString('it-IT', {day:'2-digit', month:'short', hour:'2-digit', minute:'2-digit'});
+                const date = new Date(t.created_at).toLocaleString('it-IT', {day:'2-digit', month:'short', hour:'2-digit', minute:'2-digit'});
                 return `
                 <div class="spot-card">
                     <img src="${t.foto_url}" class="spot-img">
                     <div class="info">
-                        <div class="date-label">${dataOra}</div>
-                        <h3 style="margin:0;">@${t.nome_posto}</h3>
+                        <div class="date">${date}</div>
+                        <h3 style="margin:0 0 10px 0; font-size:30px; font-weight:900;">@${t.nome_posto}</h3>
                         ${t.audio_url ? `
-                            <button class="btn-audio" onclick="playAudio('${t.audio_url}', this, 'bar-${i}', 'cont-${i}')">ASCOLTA</button>
-                            <div class="p-wrap" id="cont-${i}"><div class="p-fill" id="bar-${i}"></div></div>
+                            <button class="btn-audio" onclick="playAudio('${t.audio_url}', this, 'b-${i}', 'c-${i}')">ASCOLTA</button>
+                            <div class="p-cont" id="c-${i}"><div class="p-bar" id="b-${i}"></div></div>
                         ` : ''}
                     </div>
                 </div>
@@ -97,40 +100,55 @@
     }
 
     function playAudio(url, btn, barId, contId) {
-        const audio = new Audio(url);
+        const audio = new Audio();
+        audio.src = url;
+        audio.crossOrigin = "anonymous"; // Per evitare blocchi sicurezza
         const bar = document.getElementById(barId);
         const cont = document.getElementById(contId);
-        btn.innerText = "...";
+        
+        btn.innerText = "CARICAMENTO...";
         cont.style.display = 'block';
 
         audio.ontimeupdate = () => { bar.style.width = (audio.currentTime / audio.duration * 100) + "%"; };
-        audio.play().then(() => btn.innerText = "RIPRODUZIONE").catch(() => btn.innerText = "ERRORE");
-        audio.onended = () => { btn.innerText = "ASCOLTA"; cont.style.display = 'none'; };
+        audio.play().then(() => { btn.innerText = "IN RIPRODUZIONE"; })
+        .catch(e => { 
+            console.error(e);
+            btn.innerText = "TOCCA DI NUOVO"; 
+            cont.style.display = 'none';
+        });
+        audio.onended = () => { btn.innerText = "ASCOLTA"; cont.style.display = 'none'; bar.style.width = "0%"; };
     }
 
     async function toggleRec() {
         const btn = document.getElementById('rec-btn');
-        const dot = document.getElementById('rec-dot');
+        const notif = document.getElementById('rec-notif');
         if(!mediaRecorder || mediaRecorder.state === 'inactive') {
             const stream = await navigator.mediaDevices.getUserMedia({audio: true});
-            mediaRecorder = new MediaRecorder(stream);
+            // Forza formato AAC se disponibile (meglio per iOS)
+            const options = MediaRecorder.isTypeSupported('audio/mp4') ? {mimeType: 'audio/mp4'} : {};
+            mediaRecorder = new MediaRecorder(stream, options);
             chunks = [];
             mediaRecorder.ondataavailable = e => chunks.push(e.data);
             mediaRecorder.onstop = () => {
-                const blob = new Blob(chunks, {type: 'audio/webm'});
+                const blob = new Blob(chunks, {type: options.mimeType || 'audio/webm'});
                 const reader = new FileReader();
                 reader.readAsDataURL(blob);
-                reader.onloadend = () => { audioBase64 = reader.result; btn.style.background = "green"; };
-                dot.style.display = 'none';
+                reader.onloadend = () => { 
+                    audioBase64 = reader.result; 
+                    btn.style.background = "#4cd964"; 
+                    btn.innerText = "✅";
+                };
+                notif.style.display = 'none';
                 stream.getTracks().forEach(t => t.stop());
             };
             mediaRecorder.start();
-            btn.style.background = "red";
-            dot.style.display = 'block';
+            btn.style.background = "red"; btn.innerText = "⏹"; notif.style.display = 'block';
         } else { mediaRecorder.stop(); }
     }
 
     async function capture() {
+        const btn = document.getElementById('snap-btn');
+        btn.style.borderColor = "#4cd964";
         const v = document.getElementById('video');
         const c = document.getElementById('canvas');
         c.width = 640; c.height = 480;
@@ -145,10 +163,11 @@
         navigator.mediaDevices.getUserMedia({video: {facingMode:'environment'}}).then(s => document.getElementById('video').srcObject = s);
     }
     function closeCam() { document.getElementById('cam-modal').style.display = 'none'; }
-    function goTo(p) { document.getElementById('main-slider').style.transform = `translateX(-${p * 100}vw)`; }
-    function editName() { const n = prompt("Nome:"); if(n) { profile.name = n; localStorage.setItem('tracce_v4', JSON.stringify(profile)); location.reload(); }}
+    function goTo(p) { document.getElementById('slider').style.transform = `translateX(-${p * 100}vw)`; }
+    function editName() { const n = prompt("Tuo nome:"); if(n) { profile.name = n; localStorage.setItem('tracce_v4', JSON.stringify(profile)); location.reload(); }}
     function genQR() { 
         const n = document.getElementById('place-name').value; 
+        if(!n) return alert("Scrivi un nome!");
         const qr = document.getElementById('qrcode');
         qr.style.display = 'flex'; qr.innerHTML = "";
         new QRCode(qr, {text: window.location.origin + window.location.pathname + "?id=" + n, width: 150, height: 150});
