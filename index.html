@@ -14,11 +14,21 @@
         #slider { display: flex; width: 200vw; height: 100dvh; transition: 0.5s cubic-bezier(0.2, 1, 0.2, 1); }
         .page { width: 100vw; height: 100dvh; position: relative; overflow-y: auto; padding-bottom: 110px; }
 
-        /* Feed Estetica Immagine 1 */
-        .spot-card { height: 100dvh; scroll-snap-align: start; position: relative; background: #000; }
+        /* Feed Estetica Immagini 1,2,3 - NON SCHERMO INTERO */
+        .spot-card { 
+            height: 100dvh; scroll-snap-align: start; position: relative; background: #000; 
+            display: flex; align-items: center; justify-content: center; /* Centra la foto */
+            padding: 70px 0 160px 0; /* Spazi neri: top e bottom (per nav) */
+        }
+        .spot-img-container {
+            width: 100%; height: 100%; /* La foto occupa solo lo spazio tra i padding */
+            position: relative; overflow: hidden; border-radius: 10px; /* Bordo leggermente arrotondato opzionale */
+        }
         .spot-img { width: 100%; height: 100%; object-fit: cover; }
+        
         .overlay { position: absolute; inset: 0; background: linear-gradient(to bottom, transparent 60%, rgba(0,0,0,0.8)); pointer-events: none; }
         
+        /* Play Overlay Centrale */
         .play-overlay { 
             position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
             width: 90px; height: 90px; background: rgba(255,255,255,0.2); 
@@ -28,9 +38,13 @@
         }
         .play-icon { width: 0; height: 0; border-top: 15px solid transparent; border-bottom: 15px solid transparent; border-left: 25px solid white; margin-left: 5px; }
 
-        .info { position: absolute; bottom: 140px; left: 25px; right: 25px; z-index: 10; }
+        /* Scritte: posizionate nello spazio nero IN BASSO */
+        .info { 
+            position: absolute; bottom: 80px; /* Alzata rispetto alla nav per stare nel nero */
+            left: 25px; right: 25px; z-index: 10; 
+        }
         .date { font-size: 12px; color: rgba(255,255,255,0.6); font-weight: 600; text-transform: uppercase; letter-spacing: 1px; }
-        .place-title { margin: 5px 0; font-size: 32px; font-weight: 900; }
+        .place-title { margin: 5px 0; font-size: 28px; font-weight: 900; } /* Leggermente più piccola */
         
         .p-cont { width: 100%; height: 4px; background: rgba(255,255,255,0.2); border-radius: 2px; margin-top: 10px; overflow: hidden; }
         .p-bar { height: 100%; background: #fff; width: 0%; transition: width 0.1s linear; }
@@ -80,7 +94,9 @@
     <button onclick="goTo(0)" class="nav-btn">
         <svg class="svg-icon" viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
     </button>
-    <button class="add" onclick="openCam()">+</button>
+    <button class="add" onclick="openCam()" style="margin-top: -10px;">
+        <svg class="svg-icon" viewBox="0 0 24 24" style="fill:none; stroke:white; stroke-width:3; width:30px; height:30px;"><path d="M12 5v14M5 12h14"/></svg>
+    </button>
     <button onclick="goTo(1)" class="nav-btn">
         <svg class="svg-icon" viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
     </button>
@@ -118,13 +134,15 @@
                 const date = new Date(t.created_at).toLocaleString('it-IT', {day:'2-digit', month:'short', hour:'2-digit', minute:'2-digit'});
                 return `
                 <div class="spot-card">
-                    <img src="${t.foto_url}" class="spot-img">
-                    <div class="overlay"></div>
-                    ${t.audio_url ? `
-                        <div class="play-overlay" onclick="playAudio('${t.audio_url}', this, 'b-${i}', 'c-${i}')">
-                            <div class="play-icon"></div>
-                        </div>
-                    ` : ''}
+                    <div class="spot-img-container">
+                        <img src="${t.foto_url}" class="spot-img">
+                        <div class="overlay"></div>
+                        ${t.audio_url ? `
+                            <div class="play-overlay" onclick="playAudio('${t.audio_url}', this, 'b-${i}', 'c-${i}')">
+                                <div class="play-icon"></div>
+                            </div>
+                        ` : ''}
+                    </div>
                     <div class="info">
                         <div class="date">${date}</div>
                         <h3 class="place-title">@${t.nome_posto}</h3>
