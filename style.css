@@ -1,13 +1,14 @@
 :root { 
     --accent: #ff3b30; 
     --bg: #000;
-    --glass-bg: rgba(30, 30, 30, 0.6);
-    --glass-border: rgba(255, 255, 255, 0.1);
+    --glass-white: rgba(255, 255, 255, 0.12);
+    --glass-dark: rgba(20, 20, 20, 0.75);
+    --border: rgba(255, 255, 255, 0.1);
 }
 
 * { 
     box-sizing: border-box; 
-    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", sans-serif;
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Helvetica Neue", sans-serif;
     -webkit-tap-highlight-color: transparent;
 }
 
@@ -19,122 +20,123 @@ body {
     overflow: hidden; 
 }
 
-/* Container principale per lo slide tra le pagine */
-#main-slider { 
-    display: flex; 
-    width: 200vw; 
-    height: 100dvh; 
-    transition: 0.6s cubic-bezier(0.2, 1, 0.2, 1); 
+/* Loader centrato e sfocato (Risolve il problema in alto a sinistra) */
+#loader { 
+    position: fixed; 
+    inset: 0; 
+    background: rgba(0,0,0,0.85); 
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    display: flex; /* Centra il contenuto */
+    align-items: center; 
+    justify-content: center; 
+    z-index: 9999; 
+    font-weight: 800;
+    letter-spacing: 2px;
+    font-size: 14px;
+    text-transform: uppercase;
 }
 
-.page { 
-    width: 100vw; 
-    height: 100dvh; 
-    position: relative; 
-    overflow-y: auto; 
-    padding-bottom: 150px; 
-}
+/* Slider Pagine */
+#main-slider { display: flex; width: 200vw; height: 100dvh; transition: 0.7s cubic-bezier(0.2, 1, 0.2, 1); }
+.page { width: 100vw; height: 100dvh; position: relative; overflow-y: auto; padding-bottom: 160px; }
 
 /* FEED IMMERSIVO (Come nella foto) */
-.spot-card { 
-    height: 100dvh; 
-    width: 100vw; 
-    scroll-snap-align: start; 
-    position: relative; 
-    background: #000; 
-}
+.spot-card { height: 100dvh; width: 100vw; scroll-snap-align: start; position: relative; background: #000; }
+.spot-img { width: 100%; height: 100%; object-fit: cover; position: absolute; inset: 0; }
 
-.spot-img { 
-    width: 100%; 
-    height: 100%; 
-    object-fit: cover; 
-}
-
-/* L'ombra scura in basso per far leggere i testi bianchi */
+/* Gradiente scuro sulle foto per profondità e leggibilità */
 .spot-card::after {
     content: "";
     position: absolute;
-    bottom: 0; left: 0; right: 0; height: 50%;
-    background: linear-gradient(to top, rgba(0,0,0,1) 0%, rgba(0,0,0,0.4) 100%);
-    pointer-events: none;
+    inset: 0;
+    background: linear-gradient(to top, rgba(0,0,0,0.95) 0%, rgba(0,0,0,0.4) 40%, transparent 100%);
+    z-index: 2;
 }
 
-/* TESTI INFO (Posizionamento identico alla foto) */
-.info { 
-    position: absolute; 
-    bottom: 150px; 
-    left: 25px; 
-    right: 25px; 
-    z-index: 10; 
-}
+/* TESTI INFO (Identici al design della foto) */
+.info { position: absolute; bottom: 160px; left: 30px; right: 30px; z-index: 10; }
+.info p { margin: 0; font-size: 17px; opacity: 0.7; font-weight: 500; letter-spacing: -0.2px; }
+.info h3 { margin: 4px 0 18px 0; font-size: 38px; font-weight: 900; letter-spacing: -1.8px; line-height: 1; }
 
-.info p { margin: 0; font-size: 16px; opacity: 0.8; font-weight: 500; }
-.info h3 { margin: 5px 0 15px 0; font-size: 32px; font-weight: 900; letter-spacing: -1px; }
-
-/* BOTTONE AUDIO "GLASS" */
+/* PULSANTE AUDIO GLASS (Trasparente ed elegante) */
 .btn-audio { 
-    background: rgba(255,255,255,0.1);
+    background: var(--glass-white);
     color: #fff; 
-    border: 1px solid var(--glass-border); 
-    padding: 14px 24px; 
+    border: 1px solid var(--border); 
+    padding: 15px 28px; 
     border-radius: 40px; 
-    font-weight: 700; 
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
-    display: flex; 
-    align-items: center; 
-    gap: 10px;
-    text-transform: uppercase;
+    font-weight: 800; 
     font-size: 12px;
+    letter-spacing: 1px;
+    backdrop-filter: blur(18px);
+    -webkit-backdrop-filter: blur(18px);
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.3);
 }
 
-/* NAV BAR SOSPESA (Il cuore del design della foto) */
+/* NAV BAR SOSPESA (Il cuore del design Apple-style) */
 .nav { 
     position: fixed; 
-    bottom: 30px; 
+    bottom: 35px; 
     left: 50%; 
     transform: translateX(-50%); 
     display: flex; 
     align-items: center; 
     gap: 40px; 
     z-index: 1000; 
-    background: var(--glass-bg); 
-    padding: 10px 40px; 
+    background: var(--glass-dark); 
+    padding: 12px 42px; 
     border-radius: 60px; 
-    border: 1px solid var(--glass-border); 
+    border: 1px solid var(--border); 
     backdrop-filter: blur(25px);
     -webkit-backdrop-filter: blur(25px);
-    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    box-shadow: 0 20px 40px rgba(0,0,0,0.6);
 }
 
-.nav-btn { background: none; border: none; color: #fff; font-size: 24px; opacity: 0.4; }
+.nav-btn { background: none; border: none; color: #fff; font-size: 26px; opacity: 0.35; transition: 0.3s; }
 .nav-btn.active { opacity: 1; }
 
-/* TASTO CENTRALE BIANCO */
+/* TASTO CENTRALE "+" BIANCO */
 .add { 
-    width: 60px; 
-    height: 60px; 
+    width: 62px; 
+    height: 62px; 
     background: #fff; 
     border-radius: 50%; 
     border: none; 
     color: #000; 
-    font-size: 30px; 
+    font-size: 32px; 
+    font-weight: bold;
     display: flex; 
     align-items: center; 
     justify-content: center;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.4);
 }
 
-/* CERCHIO DI REGISTRAZIONE (Chrono) */
+/* CHRONO RING (L'anello che pulsa durante la registrazione) */
 .chrono-ring {
-    position: absolute;
-    inset: -8px;
-    border: 4px solid var(--accent);
+    position: absolute; 
+    inset: -8px; 
     border-radius: 50%;
+    border: 4px solid var(--accent); 
     display: none;
-    animation: pulse 1.5s infinite;
+    animation: rotatePulse 1.8s infinite ease-out;
 }
 
-@keyframes pulse {
+@keyframes rotatePulse {
     0% { transform: scale(1); opacity: 1; }
-    100% { transform: scale(1.2); opacity: 0; }
+    100% { transform: scale(1.3); opacity: 0; }
+}
+
+/* CARDS E INPUT PER IL PROFILO */
+.card { background: rgba(255,255,255,0.05); border-radius: 28px; padding: 25px; margin-top: 25px; border: 1px solid var(--border); }
+input[type="text"] { 
+    width: 100%; background: #111; color: #fff; border: 1px solid #333; 
+    padding: 18px; border-radius: 18px; font-size: 16px; margin-bottom: 12px; outline: none; 
+}
+.btn-main { 
+    width: 100%; padding: 18px; background: #fff; color: #000; border: none; 
+    border-radius: 18px; font-weight: 800; font-size: 16px; 
 }
