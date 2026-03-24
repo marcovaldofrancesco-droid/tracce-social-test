@@ -14,10 +14,10 @@
         #slider { display: flex; width: 200vw; height: 100dvh; transition: 0.5s cubic-bezier(0.2, 1, 0.2, 1); }
         .page { width: 100vw; height: 100dvh; position: relative; overflow-y: auto; padding-bottom: 120px; }
 
-        /* HEADER POSIZIONE (Preso dal Link) */
+        /* HEADER POSIZIONE */
         .location-header {
-            position: absolute; top: 40px; left: 0; width: 100%; text-align: center; z-index: 20;
-            font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 2px; color: rgba(255,255,255,0.8);
+            position: absolute; top: 50px; left: 0; width: 100%; text-align: center; z-index: 20;
+            font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 3px; color: rgba(255,255,255,0.6);
         }
 
         #profile-page { padding: 100px 25px 40px 25px; }
@@ -25,46 +25,55 @@
         .spot-card { 
             height: 100dvh; scroll-snap-align: start; position: relative; background: #000; 
             display: flex; flex-direction: column; align-items: center; justify-content: center;
-            padding: 40px 0 140px 0;
+            padding: 20px 0 100px 0;
         }
         
+        /* FORMATO RETTAGOLARE VERTICALE (3:4) */
         .spot-img-container {
-            width: 90%; height: 62%; position: relative; overflow: hidden; border-radius: 24px; 
-            background: #111; box-shadow: 0 20px 40px rgba(0,0,0,0.5);
+            width: 85%; 
+            aspect-ratio: 3 / 4; /* Forza la forma rettangolare verticale */
+            position: relative; 
+            overflow: hidden; 
+            border-radius: 30px; 
+            background: #111; 
+            box-shadow: 0 30px 60px rgba(0,0,0,0.8);
+            border: 1px solid rgba(255,255,255,0.05);
         }
         
         .spot-img { width: 100%; height: 100%; object-fit: cover; object-position: center; display: block; }
         
-        .overlay { position: absolute; inset: 0; background: linear-gradient(to bottom, transparent 50%, rgba(0,0,0,0.5)); pointer-events: none; }
+        .overlay { position: absolute; inset: 0; background: linear-gradient(to bottom, transparent 60%, rgba(0,0,0,0.4)); pointer-events: none; }
         
         .play-overlay { 
             position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
-            width: 85px; height: 85px; background: rgba(255,255,255,0.15); 
-            backdrop-filter: blur(15px); border-radius: 50%; 
+            width: 90px; height: 90px; background: rgba(255,255,255,0.12); 
+            backdrop-filter: blur(20px); border-radius: 50%; 
             display: flex; align-items: center; justify-content: center;
-            border: 1px solid rgba(255,255,255,0.2); z-index: 5;
+            border: 1px solid rgba(255,255,255,0.15); z-index: 5;
         }
         .play-icon { width: 0; height: 0; border-top: 15px solid transparent; border-bottom: 15px solid transparent; border-left: 25px solid white; margin-left: 6px; }
 
-        .info { width: 90%; margin-top: 25px; }
-        .date { font-size: 11px; color: rgba(255,255,255,0.4); font-weight: 700; text-transform: uppercase; letter-spacing: 2px; }
-        .place-title { margin: 4px 0; font-size: 32px; font-weight: 900; letter-spacing: -1px; }
+        /* INFO */
+        .info { width: 85%; margin-top: 25px; }
+        .date { font-size: 10px; color: rgba(255,255,255,0.4); font-weight: 700; text-transform: uppercase; letter-spacing: 2px; }
+        .place-title { margin: 4px 0; font-size: 28px; font-weight: 900; letter-spacing: -1px; color: #fff; }
         
         .p-cont { width: 100%; height: 3px; background: rgba(255,255,255,0.1); border-radius: 2px; margin-top: 15px; overflow: hidden; }
         .p-bar { height: 100%; background: #fff; width: 0%; }
 
-        .nav { position: fixed; bottom: 35px; left: 50%; transform: translateX(-50%); display: flex; gap: 40px; z-index: 1000; background: rgba(20,20,20,0.8); padding: 12px 35px; border-radius: 50px; backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.1); align-items: center; }
-        .nav-btn { background: none; border: none; color: #fff; opacity: 0.4; display: flex; align-items: center; justify-content: center; width: 32px; height: 32px; }
+        /* NAVIGAZIONE */
+        .nav { position: fixed; bottom: 35px; left: 50%; transform: translateX(-50%); display: flex; gap: 40px; z-index: 1000; background: rgba(15,15,15,0.9); padding: 12px 35px; border-radius: 50px; backdrop-filter: blur(25px); border: 1px solid rgba(255,255,255,0.1); align-items: center; }
+        .nav-btn { background: none; border: none; color: #fff; opacity: 0.3; display: flex; align-items: center; justify-content: center; width: 32px; height: 32px; }
         .nav-btn.active { opacity: 1; }
-        .add { width: 62px; height: 62px; background: var(--accent); border-radius: 50%; border: none; display: flex; align-items: center; justify-content: center; box-shadow: 0 10px 25px rgba(255,59,48,0.4); }
-        .svg-icon { width: 24px; height: 24px; fill: currentColor; }
+        .add { width: 60px; height: 60px; background: var(--accent); border-radius: 50%; border: none; display: flex; align-items: center; justify-content: center; box-shadow: 0 10px 30px rgba(255,59,48,0.4); }
+        .svg-icon { width: 22px; height: 22px; fill: currentColor; }
     </style>
 </head>
 <body>
 
 <div id="slider">
     <div class="page" id="profile-page">
-        <h1 id="u-name" onclick="editName()" style="font-size: 44px; font-weight: 900; margin:0; letter-spacing: -2px;">Ciao!</h1>
+        <h1 id="u-name" onclick="editName()" style="font-size: 42px; font-weight: 900; margin:0; letter-spacing: -2px;">Ciao!</h1>
         <div style="background: #111; padding: 25px; border-radius: 30px; margin-top: 40px; border: 1px solid #222;">
             <input type="text" id="place-name" placeholder="Nome di questo posto..." style="width:100%; padding:18px; border-radius:15px; border:none; background:#1c1c1e; color:#fff; font-size:16px; margin-bottom:12px;">
             <button onclick="genQR()" style="width:100%; padding:18px; border-radius:15px; background:#fff; font-weight:900; color:#000; border:none;">GENERA QR</button>
@@ -81,7 +90,7 @@
         <svg class="svg-icon" viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
     </button>
     <button class="add" onclick="openCam()">
-        <svg viewBox="0 0 24 24" style="width:30px; height:30px; stroke:white; stroke-width:3; fill:none;"><path d="M12 5v14M5 12h14"/></svg>
+        <svg viewBox="0 0 24 24" style="width:28px; height:28px; stroke:white; stroke-width:3; fill:none;"><path d="M12 5v14M5 12h14"/></svg>
     </button>
     <button onclick="goTo(1)" class="nav-btn" id="btn-home">
         <svg class="svg-icon" viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
@@ -109,13 +118,12 @@
 
     document.getElementById('u-name').innerText = "Ciao, " + profile.name;
 
-    // Imposta il nome del posto in alto prendendolo dal link
     if(idTag) { 
         document.getElementById('current-loc').innerText = "📍 " + decodeURIComponent(idTag);
         loadFeed(); 
         goTo(1); 
     } else { 
-        document.getElementById('current-loc').innerText = "NESSUNA POSIZIONE";
+        document.getElementById('current-loc').innerText = "";
         document.getElementById('btn-prof').classList.add('active'); 
     }
 
@@ -139,7 +147,6 @@
                     </div>
                 </div>`
             }).join('');
-            // Manteniamo l'header aggiungendo i contenuti sotto
             feed.innerHTML = `<div class="location-header">📍 ${decodeURIComponent(idTag)}</div>` + items;
         }
     }
@@ -182,7 +189,7 @@
         const c = document.getElementById('canvas');
         c.width = 1080; c.height = 1440;
         c.getContext('2d').drawImage(v, 0, 0, 1080, 1440);
-        const foto = c.toDataURL('image/jpeg', 0.8);
+        const foto = c.toDataURL('image/jpeg', 0.7);
         await sb.from('spots').insert([{ id_tag: idTag, nome_posto: profile.name, foto_url: foto, audio_url: audioBase64 }]);
         location.reload();
     }
