@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>TRACCE SONORE</title>
+    <title>TRACCE UNIVERSAL</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <style>
@@ -11,59 +11,52 @@
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; font-family: -apple-system, sans-serif; }
         body { margin: 0; background: var(--bg); color: #fff; height: 100dvh; overflow: hidden; }
 
-        /* --- HUB PAGE --- */
-        #hub-page { height: 100dvh; width: 100vw; overflow-y: auto; padding: 40px 25px 120px; display: none; background: radial-gradient(circle at top right, #1a1a1a, #000); }
-        .hero h1 { font-size: 48px; letter-spacing: -3px; margin: 0; line-height: 0.9; }
-        .step-box { background: var(--glass); padding: 15px; border-radius: 20px; margin-top: 20px; border: 1px solid rgba(255,255,255,0.05); }
-
-        /* --- SLIDER --- */
+        /* --- UI ELEMENTS --- */
+        #hub-page { height: 100dvh; width: 100vw; padding: 40px 25px; display: none; background: #000; }
         #main-slider { display: flex; width: 200vw; height: 100dvh; transition: transform 0.6s cubic-bezier(0.2, 1, 0.2, 1); }
         .page { width: 100vw; height: 100dvh; position: relative; overflow-y: auto; padding: 40px 25px 120px; }
         
         #gallery-feed { height: 100%; width: 100%; overflow-y: scroll; scroll-snap-type: y mandatory; position: absolute; top:0; left:0; }
-        #gallery-feed::-webkit-scrollbar { display: none; }
         .spot-card { height: 100dvh; width: 100vw; scroll-snap-align: start; position: relative; background: #111; }
         .spot-img { width: 100%; height: 100%; object-fit: cover; }
-        .vignette { position: absolute; bottom: 0; width: 100%; height: 60%; background: linear-gradient(to top, rgba(0,0,0,1) 10%, transparent); pointer-events: none; }
+        .vignette { position: absolute; bottom: 0; width: 100%; height: 60%; background: linear-gradient(to top, #000 15%, transparent); pointer-events: none; }
         
-        .heart-pop { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0); font-size: 100px; color: var(--accent); opacity: 0; pointer-events: none; z-index: 1000; }
-        @keyframes pop { 0% { transform: translate(-50%, -50%) scale(0); opacity: 0; } 50% { opacity: 1; transform: translate(-50%, -50%) scale(1.2); } 100% { opacity: 0; transform: translate(-50%, -50%) scale(1); } }
+        /* BOTTONE AUDIO MIGLIORATO */
+        .audio-badge { 
+            background: var(--accent); color: #fff; padding: 16px 24px; border-radius: 40px; 
+            font-size: 14px; font-weight: 900; display: flex; align-items: center; gap: 10px; 
+            margin-top: 15px; cursor: pointer; border: none; outline: none;
+            box-shadow: 0 8px 25px rgba(255,59,48,0.4); active { transform: scale(0.95); }
+        }
 
-        .audio-badge { background: var(--accent); color: #fff; padding: 14px 22px; border-radius: 30px; font-size: 14px; font-weight: 900; display: flex; align-items: center; gap: 10px; margin-top: 15px; width: fit-content; cursor: pointer; border: none; box-shadow: 0 4px 20px rgba(255,59,48,0.4); }
-
-        /* --- CAMERA --- */
+        /* CAMERA & REC */
         #camera-modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000; z-index: 5000; display: none; }
         #video { width: 100%; height: 100%; object-fit: cover; }
         .cam-ui { position: absolute; bottom: 40px; width: 100%; padding: 0 25px; display: flex; flex-direction: column; align-items: center; gap: 20px; }
         
-        #rec-btn { background: rgba(255,255,255,0.2); border: 2px solid #fff; width: 65px; height: 65px; border-radius: 50%; font-size: 26px; color: #fff; display: flex; align-items: center; justify-content: center; transition: 0.3s; }
+        #rec-btn { background: rgba(255,255,255,0.2); border: 2px solid #fff; width: 65px; height: 65px; border-radius: 50%; font-size: 26px; color: #fff; display: flex; align-items: center; justify-content: center; }
         #rec-btn.recording { background: var(--accent); border-color: var(--accent); animation: pulse 1s infinite; }
-        #rec-btn.ready { border-color: #4cd964; box-shadow: 0 0 15px #4cd964; color: #4cd964; }
+        #rec-btn.ready { border-color: #4cd964; color: #4cd964; box-shadow: 0 0 20px #4cd964; }
 
         @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.1); } 100% { transform: scale(1); } }
 
         .nav-dock { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); width: 280px; height: 70px; background: var(--glass-heavy); backdrop-filter: blur(30px); border-radius: 35px; border: 1px solid rgba(255,255,255,0.1); display: flex; justify-content: space-around; align-items: center; z-index: 4000; }
-        .nav-btn { background: none; border: none; font-size: 26px; opacity: 0.4; }
-        .nav-btn.active { opacity: 1; }
-        .add-btn { width: 55px; height: 55px; background: var(--accent); border-radius: 22px; display: flex; align-items: center; justify-content: center; font-size: 32px; font-weight: bold; color: #fff; }
+        .add-btn { width: 55px; height: 55px; background: var(--accent); border-radius: 22px; display: flex; align-items: center; justify-content: center; font-size: 32px; color: #fff; }
     </style>
 </head>
 <body>
 
     <div id="hub-page">
-        <div class="hero"><h1>Tracce.</h1><p>Ascolta il passato.</p></div>
-        <button onclick="window.location.href='?id=Generale'" style="width:100%; background:#fff; padding:20px; border-radius:20px; font-weight:800; border:none; margin-top:20px;">HUB GLOBALE</button>
+        <h1>Tracce.</h1>
+        <button onclick="window.location.href='?id=Generale'" style="width:100%; background:#fff; padding:20px; border-radius:20px; font-weight:800; border:none;">ENTRA NELL'HUB</button>
     </div>
 
     <div id="main-slider">
         <div class="page" id="profile-page">
             <h1 id="u-name" onclick="editName()">Esploratore</h1>
-            <p style="opacity:0.5;">Tocca il nome per cambiarlo</p>
-            <div class="step-box">
-                <input type="text" id="new-place-name" style="width:100%; background:rgba(0,0,0,0.5); border:1px solid #333; padding:15px; border-radius:15px; color:#fff;" placeholder="Nome nuovo varco...">
-                <button onclick="generateNewPlace()" style="width:100%; background:#fff; padding:15px; border-radius:15px; font-weight:bold; margin-top:10px; border:none;">GENERA QR</button>
-                <div id="qrcode" style="margin-top:20px; display:none; justify-content:center; background:#fff; padding:15px; border-radius:15px;"></div>
-            </div>
+            <input type="text" id="new-place-name" style="width:100%; background:#222; border:none; padding:15px; border-radius:15px; color:#fff; margin-top:20px;" placeholder="Nome varco...">
+            <button onclick="generateNewPlace()" style="width:100%; background:#fff; padding:15px; border-radius:15px; font-weight:bold; margin-top:10px; border:none;">CREA QR</button>
+            <div id="qrcode" style="margin-top:20px; display:none; justify-content:center; background:#fff; padding:15px; border-radius:15px;"></div>
         </div>
         <div class="page" style="padding:0;"><div id="gallery-feed"></div></div>
     </div>
@@ -71,21 +64,21 @@
     <div id="camera-modal">
         <video id="video" autoplay playsinline muted></video>
         <div class="cam-ui">
-            <input type="text" id="desc-input" placeholder="Cosa succede qui?" style="width:100%; background:rgba(0,0,0,0.8); border:1px solid #444; padding:15px; border-radius:15px; color:#fff;">
+            <input type="text" id="desc-input" placeholder="Cosa senti qui?" style="width:100%; background:rgba(0,0,0,0.8); border:1px solid #444; padding:15px; border-radius:15px; color:#fff;">
             <div style="display:flex; align-items:center; gap:30px;">
-                <button onclick="switchCamera()" style="background:none; border:none; font-size:24px; color:#fff;">🔄</button>
+                <button onclick="switchCamera()" style="background:none; border:none; font-size:24px;">🔄</button>
                 <div onclick="capture()" style="width:75px; height:75px; border-radius:50%; border:4px solid #fff; display:flex; align-items:center; justify-content:center;"><div style="width:60px; height:60px; background:#fff; border-radius:50%;"></div></div>
                 <button id="rec-btn" onclick="toggleRecording()">🎤</button>
                 <button onclick="closeCam()" style="background:none; border:none; font-size:24px; color:#fff;">✕</button>
             </div>
-            <div id="rec-timer" style="font-size:12px; color:var(--accent); font-weight:bold; visibility:hidden;">🔴 REGISTRAZIONE IN CORSO...</div>
+            <div id="rec-timer" style="font-size:12px; color:var(--accent); font-weight:bold; visibility:hidden;">🔴 REGISTRAZIONE...</div>
         </div>
     </div>
 
-    <div class="nav-dock" id="dock">
-        <button class="nav-btn" onclick="goTo(0)" id="n-0">👤</button>
+    <div class="nav-dock">
+        <button onclick="goTo(0)" style="background:none; border:none; font-size:26px;">👤</button>
         <button class="add-btn" onclick="openCam()">+</button>
-        <button class="nav-btn active" onclick="goTo(1)" id="n-1">🏠</button>
+        <button onclick="goTo(1)" style="background:none; border:none; font-size:26px;">🏠</button>
     </div>
 
     <canvas id="canvas" style="display:none;"></canvas>
@@ -100,28 +93,21 @@
         let currentFacing = 'environment';
         let mediaRecorder, audioChunks = [], audioBase64 = null;
 
-        if (!idTag) {
-            document.getElementById('hub-page').style.display = 'block';
-            document.getElementById('dock').style.display = 'none';
-        } else {
-            document.getElementById('u-name').innerText = profile.name;
-            load();
-        }
+        if (!idTag) document.getElementById('hub-page').style.display = 'block';
+        else { document.getElementById('u-name').innerText = profile.name; load(); }
 
         async function load() {
             const { data } = await supabaseClient.from('spots').select('*').eq('id_tag', idTag).order('created_at', { ascending: false });
             const feed = document.getElementById('gallery-feed');
             if (data) {
                 feed.innerHTML = data.map(t => `
-                    <div class="spot-card" ondblclick="like('${t.id}')">
+                    <div class="spot-card">
                         <img src="${t.foto_url}" class="spot-img">
                         <div class="vignette"></div>
-                        <div id="heart-${t.id}" class="heart-pop">❤️</div>
                         <div style="position:absolute; bottom:120px; left:25px; right:25px;">
                             <h3 style="margin:0;">@${t.nome_posto}</h3>
-                            <p style="margin:5px 0 15px; opacity:0.8; font-size:14px;">${t.descrizione || ''}</p>
-                            ${t.audio_url ? `<button class="audio-badge" onclick="playAudio('${t.audio_url}')">🔊 ASCOLTA TRACCIA</button>` : ''}
-                            <div style="font-size:11px; color:var(--accent); margin-top:15px; font-weight:800;">❤️ ${t.likes || 0} APPREZZAMENTI</div>
+                            <p style="margin:5px 0 15px; opacity:0.8;">${t.descrizione || ''}</p>
+                            ${t.audio_url ? `<button class="audio-badge" onclick="playAudio('${t.audio_url}', this)">🔊 ASCOLTA TRACCIA</button>` : ''}
                         </div>
                     </div>
                 `).join('');
@@ -131,18 +117,23 @@
         async function toggleRecording() {
             const btn = document.getElementById('rec-btn');
             const timer = document.getElementById('rec-timer');
+            
             if (!mediaRecorder || mediaRecorder.state === "inactive") {
                 const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-                mediaRecorder = new MediaRecorder(stream);
+                
+                // Polyfill per formati supportati (iOS vs Android)
+                const mimeType = MediaRecorder.isTypeSupported('audio/mp4') ? 'audio/mp4' : 'audio/webm';
+                mediaRecorder = new MediaRecorder(stream, { mimeType });
+                
                 audioChunks = [];
-                mediaRecorder.ondataavailable = e => { if (e.data.size > 0) audioChunks.push(e.data); };
+                mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
                 mediaRecorder.onstop = () => {
-                    const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+                    const audioBlob = new Blob(audioChunks, { type: mimeType });
                     const reader = new FileReader();
                     reader.readAsDataURL(audioBlob);
                     reader.onloadend = () => { 
                         audioBase64 = reader.result; 
-                        btn.classList.add('ready'); // Diventa verde quando pronto
+                        btn.classList.add('ready');
                         btn.innerText = "✅";
                     };
                     btn.classList.remove('recording');
@@ -156,9 +147,21 @@
             }
         }
 
-        function playAudio(base64) {
+        function playAudio(base64, btn) {
+            if (!base64) return;
             const audio = new Audio(base64);
-            audio.play().catch(() => alert("Tocca di nuovo per riprodurre l'audio"));
+            const originalText = btn.innerText;
+            
+            btn.innerText = "⏳ CARICAMENTO...";
+            audio.play()
+                .then(() => {
+                    btn.innerText = "🎵 IN RIPRODUZIONE";
+                    audio.onended = () => btn.innerText = originalText;
+                })
+                .catch(() => {
+                    btn.innerText = "❌ TOCCA DI NUOVO";
+                    setTimeout(() => btn.innerText = originalText, 2000);
+                });
         }
 
         async function capture() {
@@ -168,9 +171,9 @@
             const ctx = c.getContext('2d');
             if(currentFacing === 'user') { ctx.translate(c.width, 0); ctx.scale(-1, 1); }
             ctx.drawImage(v, 0, 0);
-            const img = c.toDataURL('image/jpeg', 0.5);
             
-            await supabaseClient.from('spots').insert([{ 
+            const img = c.toDataURL('image/jpeg', 0.5);
+            const { error } = await supabaseClient.from('spots').insert([{ 
                 id_tag: idTag, 
                 nome_posto: profile.name, 
                 descrizione: document.getElementById('desc-input').value, 
@@ -178,21 +181,13 @@
                 audio_url: audioBase64,
                 likes: 0 
             }]);
-            
-            // RESET
-            audioBase64 = null;
-            const btn = document.getElementById('rec-btn');
-            btn.classList.remove('ready');
-            btn.innerText = "🎤";
-            closeCam(); load();
-        }
 
-        async function like(id) {
-            const h = document.getElementById('heart-'+id);
-            h.style.animation = 'pop 0.6s ease-out';
-            setTimeout(() => h.style.animation = '', 600);
-            await supabaseClient.rpc('increment_likes', { row_id: id });
-            load();
+            if(!error) {
+                audioBase64 = null;
+                document.getElementById('rec-btn').classList.remove('ready');
+                document.getElementById('rec-btn').innerText = "🎤";
+                closeCam(); load();
+            } else alert("Errore invio!");
         }
 
         function openCam() {
@@ -207,11 +202,10 @@
 
         function goTo(p) {
             document.getElementById('main-slider').style.transform = `translateX(-${p * 100}vw)`;
-            document.querySelectorAll('.nav-btn').forEach((b, i) => b.classList.toggle('active', i === p));
         }
 
         function editName() {
-            const n = prompt("Tuo nome:");
+            const n = prompt("Nome:");
             if(n) { profile.name = n; localStorage.setItem('tracce_v4', JSON.stringify(profile)); location.reload(); }
         }
 
